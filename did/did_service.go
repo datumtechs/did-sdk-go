@@ -1,4 +1,4 @@
-package api
+package did
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
-	"math/big"
 	"strings"
 	"time"
 )
@@ -81,7 +80,7 @@ func (s *DIDService) CreateDID(address common.Address, pubKeyHex string) *common
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for CreatePid(): %s, address: %v", address, err)
 		response.Status = common2.Response_FAILURE
@@ -238,7 +237,7 @@ func (s *DIDService) AddPublicKey(address common.Address, pubKeyId string, keyTy
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for SetAttribute(): %s, address: %v", address, err)
 		response.Status = common2.Response_FAILURE

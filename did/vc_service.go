@@ -1,4 +1,4 @@
-package api
+package did
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"math/big"
 	"time"
 )
 
@@ -95,7 +94,7 @@ func (s *DIDService) SaveVCProof(credentialHash common.Hash, signerPubKey string
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, vcContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, vcContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for CreateCredential(), error: %+v", err)
 		response.Status = common2.Response_FAILURE

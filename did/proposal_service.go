@@ -1,4 +1,4 @@
-package api
+package did
 
 import (
 	"context"
@@ -58,7 +58,7 @@ func (s *DIDService) SubmitProposal(proposalUrl string, proposed common.Address,
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for submitProposal(), error: %+v", err)
 		response.Status = common2.Response_FAILURE
@@ -128,7 +128,7 @@ func (s *DIDService) VoteProposal(proposalId *big.Int) *common2.Response {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for VoteProposal(), error: %+v", err)
 		response.Status = common2.Response_FAILURE
@@ -190,7 +190,7 @@ func (s *DIDService) WithdrawProposal(proposalId *big.Int) *common2.Response {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for WithdrawProposal(), error: %+v", err)
 		response.Status = common2.Response_FAILURE
@@ -253,7 +253,7 @@ func (s *DIDService) EffectProposal(proposalId *big.Int) *common2.Response {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input, 0, big.NewInt(0))
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for EffectProposal(), error: %+v", err)
 		response.Status = common2.Response_FAILURE
