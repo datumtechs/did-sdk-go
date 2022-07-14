@@ -3,7 +3,7 @@ module github.com/datumtechs/did-sdk-go
 go 1.18
 
 require (
-	github.com/bglmmz/chainclient v0.0.0-20220706042348-cd4ae3554228
+	github.com/bglmmz/chainclient v0.0.0-20220714061753-6a55eac1b98d
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/google/uuid v1.2.0
 	github.com/sirupsen/logrus v1.8.1
@@ -30,4 +30,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/bglmmz/chainclient => D:\github.com\bglmmz\chainclient
+// replace github.com/bglmmz/chainclient => D:\github.com\bglmmz\chainclient
