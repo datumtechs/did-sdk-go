@@ -1,40 +1,32 @@
-package types
+package vc
 
 import (
-	"encoding/hex"
 	"encoding/json"
+	"github.com/datumtechs/did-sdk-go/types/claim"
+	"github.com/datumtechs/did-sdk-go/types/proof"
 	"github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/sha3"
-	"io"
-	"sort"
-	"strings"
 )
 
-const (
+/*const (
 	TYPE_VC           string = "VerifiableCredential"
 	TYPE_VP           string = "VerifiablePresentation"
 	PROOF_SALT        string = "salt"
 	CLAIM             string = "claim"
 	PROOF_DISCLOSURES string = "disclosures"
-
-	CLAIM_FIELD_NOT_DISCLOSED int = 0
-	CLAIM_FIELD_DISCLOSED     int = 1
-	CLAIM_FIELD_EXISTED       int = 2
-)
+)*/
 
 type Credential struct {
 	Context        string
 	Id             string
 	PctId          int
+	Type           []string
 	Issuer         string // the issuer DID.
 	IssuanceDate   string
 	ExpirationDate string
-	Claim          map[string]string
-	Proof          map[string]interface{}
-	VCType         []string
+	Claim          claim.Claim
+	Proof          proof.Proof
 	Holder         string // the holder DID.
-	Version        string
 }
 
 type CredentialWrapper struct {
@@ -44,46 +36,22 @@ type CredentialWrapper struct {
 }
 
 func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int) string {
-	cc := *c
-	cc.Proof = nil
-	credMap := cc.ToMap()
-
-	claimHash := getClaimHash(cc.Claim, disclosures)
-	credMap[CLAIM] = claimHash
-	return ToJson(credMap)
+	rawCredMap := c.GetRawCredentialMap()
+	claimHash := c.Claim.GetHash(disclosures)
+	rawCredMap["claim"] = claimHash
+	return ToJson(rawCredMap)
 }
 
-func getClaimHash(claim map[string]string, disclosures map[string]int) string {
-	if disclosures == nil {
-		disclosures = make(map[string]int)
-	}
-
-	if len(disclosures) == 0 {
-		//每个字段都需要披露
-		for key, _ := range claim {
-			disclosures[key] = CLAIM_FIELD_DISCLOSED
-		}
-	}
-
-	for key, _ := range disclosures {
-		claim[key] = getSHA3(claim[key])
-	}
-
-	keys := make([]string, len(claim))
-	i := 0
-	for key := range claim {
-		keys[i] = key
-		i++
-	}
-	//排序
-	keys = sort.StringSlice(keys)
-
-	var sb = new(strings.Builder)
-	for _, key := range keys {
-		sb.WriteString(key)
-		sb.WriteString(claim[key])
-	}
-	return sb.String()
+func (c *Credential) GetRawCredentialMap() map[string]interface{} {
+	cred := make(map[string]interface{})
+	cred["context"] = c.Context
+	cred["id"] = c.Id
+	cred["pctId"] = c.PctId
+	cred["issuer"] = c.Issuer
+	cred["holder"] = c.Holder
+	cred["issuanceDate"] = c.IssuanceDate
+	cred["expirationDate"] = c.ExpirationDate
+	return cred
 }
 
 // todo: convert to map by reflect
@@ -103,15 +71,23 @@ func (c *Credential) ToMap() map[string]interface{} {
 	return m
 }
 
+func (c *Credential) GenerateRawData(claimHash string) string {
+	cred := make(map[string]interface{})
+	cred["context"] = c.Context
+	cred["id"] = c.Id
+	cred["pctId"] = c.PctId
+	cred["issuer"] = c.Issuer
+	cred["holder"] = c.Holder
+	cred["issuanceDate"] = c.IssuanceDate
+	cred["expirationDate"] = c.ExpirationDate
+	cred["claim"] = claimHash
+
+	return ToJson(cred)
+}
+
 func ToJson(m map[string]interface{}) string {
 	dataMap, _ := json.Marshal(m)
 	return string(dataMap)
-}
-
-func getSHA3(data string) string {
-	w := sha3.New256()
-	io.WriteString(w, data)
-	return hex.EncodeToString(w.Sum(nil))
 }
 
 type ProofBrief struct {

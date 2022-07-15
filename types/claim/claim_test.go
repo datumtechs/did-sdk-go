@@ -1,4 +1,4 @@
-package types
+package claim
 
 import (
 	"encoding/json"

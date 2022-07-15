@@ -13,12 +13,17 @@ const (
 	Response_UNKNOWN ResponseStatus = 2
 )
 
-type Response struct {
+type Response[K any] struct {
 	CallMode bool
 	TxHash   common.Hash
 	Status   ResponseStatus
 	Msg      string
-	Data     interface{}
+	Data     K
+}
+
+func CopyResp[K, V any](from *Response[K], to *Response[V]) {
+	to.Status = from.Status
+	to.Msg = from.Msg
 }
 
 func FormatUTC(utcTime time.Time) string {

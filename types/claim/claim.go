@@ -1,6 +1,19 @@
-package types
+package claim
 
-import "github.com/datumtechs/did-sdk-go/common"
+import (
+	"encoding/json"
+	"github.com/datumtechs/did-sdk-go/common"
+	"github.com/datumtechs/did-sdk-go/crypto"
+)
+
+const (
+	PCTID         string = "pctId"
+	NOT_DISCLOSED int    = 0
+	DISCLOSED     int    = 1
+	EXISTED       int    = 2
+)
+
+type Claim map[string]string
 
 /*type Claim map[string]interface{}
 
@@ -46,6 +59,27 @@ func (claimListSalt *ClaimListSalt) generateClaimListSalt(fixedSalt string) bool
 	}
 	return true
 }*/
+
+func (c Claim) GetHash(disclosures map[string]int) string {
+	if disclosures == nil {
+		disclosures = make(map[string]int)
+	}
+	if len(disclosures) == 0 {
+		//每个字段都需要披露
+		for key, _ := range c {
+			disclosures[key] = DISCLOSED
+		}
+	}
+
+	dest := common.Clone(c)
+	//对要披露的claim值进行hash
+	for key, _ := range disclosures {
+		dest[key] = crypto.GetSHA3(dest[key])
+	}
+
+	cliamRawdata, _ := json.Marshal(dest)
+	return crypto.GetSHA3(string(cliamRawdata))
+}
 
 func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, fixedSalt string) {
 	for k, v := range claimMapSalt {
