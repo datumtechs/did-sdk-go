@@ -44,6 +44,15 @@ func Clone[T any](src T) T {
 	return dest
 }
 
+func FormatUTC(utcTime time.Time) string {
+	return utcTime.Format("2006-01-02T15:04:05.000")
+}
+
+func MustParseUTC(utcTime string) time.Time {
+	t, _ := time.ParseInLocation("2006-01-02T15:04:05.000", utcTime, time.UTC)
+	return t
+}
+
 /*
 func CloneMap(src map[string]interface{}) map[string]interface{} {
 	if src == nil || len(src) == 0 {

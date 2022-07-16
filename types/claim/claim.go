@@ -74,11 +74,11 @@ func (c Claim) GetHash(disclosures map[string]int) string {
 	dest := common.Clone(c)
 	//对要披露的claim值进行hash
 	for key, _ := range disclosures {
-		dest[key] = crypto.GetSHA3(dest[key])
+		dest[key] = crypto.SHA3Hex(dest[key])
 	}
 
 	cliamRawdata, _ := json.Marshal(dest)
-	return crypto.GetSHA3(string(cliamRawdata))
+	return crypto.SHA3Hex(string(cliamRawdata))
 }
 
 func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, fixedSalt string) {

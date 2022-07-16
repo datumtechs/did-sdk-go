@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/bglmmz/chainclient"
-	common "github.com/datumtechs/did-sdk-go/common"
+	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
 	"github.com/datumtechs/did-sdk-go/types/doc"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -52,9 +52,9 @@ func (s *DIDService) packInput(method string, params ...interface{}) ([]byte, er
 }
 
 // datum 项目中，address就是carrier内置钱包地址。
-func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *common.Response[string] {
+func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string] {
 	// init the result
-	response := new(common.Response[string])
+	response := new(Response[string])
 	response.CallMode = false
 
 	// prepare parameters for CreatePid()
@@ -69,7 +69,7 @@ func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *com
 	input, err := s.packInput("createPid", createTime, publicKey, updateTime)
 	if err != nil {
 		log.Errorf("failed to pack input data for CreatePid(): %+v", err)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -82,7 +82,7 @@ func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *com
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for CreatePid(): %s, address: %v", address, err)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to estimate gas"
 		return response
 	}
@@ -96,19 +96,19 @@ func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *com
 	tx, err := s.didContractInstance.CreatePid(opts, createTime, "", publicKey, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call CreatePid(), address: %s", address)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
 	response.TxHash = tx.Hash()
-	response.Status = common.Response_SUCCESS
+	response.Status = Response_SUCCESS
 
 	log.Debugf("call CreatePid() txHash:%s, addresss:%s", tx.Hash().Hex(), address)
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
 	if nil == receipt {
-		response.Status = common.Response_UNKNOWN
+		response.Status = Response_UNKNOWN
 		response.Data = doc.BuildDid(addrHex)
 		response.Msg = "failed to get tx receipt"
 		return response
@@ -116,10 +116,10 @@ func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *com
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = common.Response_SUCCESS
+		response.Status = Response_SUCCESS
 		response.Data = doc.BuildDid(addrHex)
 	}
 
@@ -132,21 +132,21 @@ const (
 	did_EVENT_FIELD_PUBLICKEY      uint8 = 2
 )
 
-func (s *DIDService) GetDocument(address ethcommon.Address) *common.Response[*doc.DidDocument] {
+func (s *DIDService) GetDocument(address ethcommon.Address) *Response[*doc.DidDocument] {
 	// init the result
-	response := new(common.Response[*doc.DidDocument])
+	response := new(Response[*doc.DidDocument])
 	response.CallMode = true
 
 	blockNo, err := s.didContractInstance.GetLatestBlock(nil, address)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetLatestBlock(), address: %s", address)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to get latest block of DID"
 		return response
 	}
 	if blockNo == nil || blockNo.Uint64() == 0 {
 		log.WithError(err).Errorf("DID not found, address: %s", address)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "DID not found"
 		return response
 	}
@@ -165,7 +165,7 @@ func (s *DIDService) GetDocument(address ethcommon.Address) *common.Response[*do
 		for _, eachLog := range logs {
 			event, err := s.didContractInstance.ParsePIDAttributeChange(*eachLog)
 			if err != nil {
-				response.Status = common.Response_FAILURE
+				response.Status = Response_FAILURE
 				response.Msg = "failed to parse contract event"
 				return response
 			}
@@ -191,7 +191,7 @@ func (s *DIDService) GetDocument(address ethcommon.Address) *common.Response[*do
 			case did_EVENT_FIELD_PUBLICKEY:
 				pubKeys := make([]*doc.DidPublicKey, 0)
 				if err := json.Unmarshal([]byte(event.FieldValue), &pubKeys); err != nil {
-					response.Status = common.Response_FAILURE
+					response.Status = Response_FAILURE
 					response.Msg = "failed to unmarshal DidPublicKey"
 					return response
 				}
@@ -208,19 +208,20 @@ func (s *DIDService) GetDocument(address ethcommon.Address) *common.Response[*do
 }
 
 // 这是对合约setAttribute()方法的一个包装
-func (s *DIDService) AddPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, publicKey string) *common.Response {
-	response := new(common.Response)
+func (s *DIDService) AddPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, publicKey string) *Response[bool] {
+	response := new(Response[bool])
 	response.CallMode = false
+	response.Data = false
 
 	//to check if DID document has ths public key id already?
 	hasResp := s.HasPublicKey(address, pubKeyId)
 
-	if hasResp.Status != common.Response_SUCCESS {
+	if hasResp.Status != Response_SUCCESS {
 		response.Status = hasResp.Status
 		response.Msg = hasResp.Msg
 		return response
 	} else if hasResp.Data == true {
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "public key exists"
 		return response
 	}
@@ -232,7 +233,7 @@ func (s *DIDService) AddPublicKey(address ethcommon.Address, pubKeyId string, ke
 
 	if err != nil {
 		log.Errorf("failed to pack input data for SetAttribute(): %+v", err)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -245,7 +246,7 @@ func (s *DIDService) AddPublicKey(address ethcommon.Address, pubKeyId string, ke
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for SetAttribute(): %s, address: %v", address, err)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to estimate gas"
 		return response
 	}
@@ -258,40 +259,40 @@ func (s *DIDService) AddPublicKey(address ethcommon.Address, pubKeyId string, ke
 	tx, err := s.didContractInstance.SetAttribute(opts, did_EVENT_FIELD_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call SetAttribute(), address: %s", address)
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
 
 	response.TxHash = tx.Hash()
-	response.Status = common.Response_SUCCESS
+	response.Status = Response_SUCCESS
 
 	log.Debugf("call SetAttribute() txHash:%s, addresss:%s", tx.Hash().Hex(), address)
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
 	if nil == receipt {
-		response.Status = common.Response_UNKNOWN
+		response.Status = Response_UNKNOWN
 		response.Msg = "failed to get tx receipt"
 		return response
 	}
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = common.Response_FAILURE
+		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = common.Response_SUCCESS
+		response.Status = Response_SUCCESS
+		response.Data = true
 	}
-
 	return response
 }
 
-func (s *DIDService) HasPublicKey(address ethcommon.Address, pubKeyId string) *common.Response[bool] {
-	response := new(common.Response[bool])
+func (s *DIDService) HasPublicKey(address ethcommon.Address, pubKeyId string) *Response[bool] {
+	response := new(Response[bool])
 	response.CallMode = true
 
-	if docResp := s.GetDocument(address); docResp.Status != common.Response_SUCCESS {
+	if docResp := s.GetDocument(address); docResp.Status != Response_SUCCESS {
 		response.Msg = docResp.Msg
 		response.Status = docResp.Status
 		return response
@@ -306,11 +307,11 @@ func (s *DIDService) HasPublicKey(address ethcommon.Address, pubKeyId string) *c
 	}
 }
 
-func (s *DIDService) GetPublicKey(address ethcommon.Address, pubKeyId string) *common.Response[*doc.DidPublicKey] {
-	response := new(common.Response[*doc.DidPublicKey])
+func (s *DIDService) GetPublicKey(address ethcommon.Address, pubKeyId string) *Response[*doc.DidPublicKey] {
+	response := new(Response[*doc.DidPublicKey])
 	response.CallMode = true
 
-	if docResp := s.GetDocument(address); docResp.Status != common.Response_SUCCESS {
+	if docResp := s.GetDocument(address); docResp.Status != Response_SUCCESS {
 		response.Msg = docResp.Msg
 		response.Status = docResp.Status
 		return response
@@ -318,9 +319,9 @@ func (s *DIDService) GetPublicKey(address ethcommon.Address, pubKeyId string) *c
 		doc := docResp.Data
 		if didPubKey := doc.FindPublicKey(pubKeyId); didPubKey != nil {
 			response.Data = didPubKey
-			response.Status = common.Response_SUCCESS
+			response.Status = Response_SUCCESS
 		} else {
-			response.Status = common.Response_FAILURE
+			response.Status = Response_FAILURE
 			return response
 		}
 		return response

@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-func GetSHA3(data string) string {
+func SHA3Hex(data string) string {
 	w := sha3.New256()
 	io.WriteString(w, data)
 	return hex.EncodeToString(w.Sum(nil))
