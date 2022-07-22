@@ -1,0 +1,11 @@
+*.tar.gz
+*.zip
+*.asc
+*.deb
+.jshintrc
+coverage.out
+files/pidx
+bin
+*.bz2
+/gui/next-gen-gui
+.idea
