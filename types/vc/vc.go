@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"github.com/datumtechs/did-sdk-go/types/claim"
 	"github.com/datumtechs/did-sdk-go/types/proof"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
+	"math/big"
 )
 
 /*const (
@@ -19,7 +20,7 @@ import (
 type Credential struct {
 	Context        string
 	Id             string
-	PctId          int
+	PctId          *big.Int
 	Type           []string
 	Issuer         string // the issuer DID.
 	IssuanceDate   string
@@ -35,10 +36,10 @@ type CredentialWrapper struct {
 	Disclosure map[string]int
 }
 
-func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int) string {
+func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int, seed uint64) string {
 	rawCredMap := c.GetRawCredentialMap()
-	claimHash := c.Claim.GetHash(disclosures)
-	rawCredMap["claim"] = claimHash
+	claimHash := c.Claim.GetHash(disclosures, seed)
+	rawCredMap["claimHash"] = claimHash
 	return ToJson(rawCredMap)
 }
 
@@ -80,7 +81,7 @@ func (c *Credential) GenerateRawData(claimHash string) string {
 	cred["holder"] = c.Holder
 	cred["issuanceDate"] = c.IssuanceDate
 	cred["expirationDate"] = c.ExpirationDate
-	cred["claim"] = claimHash
+	cred["claimHash"] = claimHash
 
 	return ToJson(cred)
 }
@@ -91,7 +92,7 @@ func ToJson(m map[string]interface{}) string {
 }
 
 type ProofBrief struct {
-	CredentialHash common.Hash
+	CredentialHash ethcommon.Hash
 	SignerPubKey   string
 	Signature      string
 }

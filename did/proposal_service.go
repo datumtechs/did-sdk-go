@@ -2,17 +2,47 @@ package did
 
 import (
 	"context"
+	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/did-sdk-go/contracts"
 	"github.com/datumtechs/did-sdk-go/types/proposal"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
 	"math/big"
+	"strings"
 	"time"
 )
 
-func (s *DIDService) GetAllAuthority(applicantDid string, applicant ethcommon.Address, pctId uint64, claim map[string]interface{}, issuer ethcommon.Address) *Response[[]proposal.Authority] {
+type ProposalService struct {
+	ctx                      chainclient.Context
+	abi                      abi.ABI
+	proposalContractInstance *contracts.Vote
+}
+
+func NewProposalService(ctx chainclient.Context) *ProposalService {
+	log.Info("Init Proposal Service ...")
+	m := new(ProposalService)
+	m.ctx = ctx
+
+	instance, err := contracts.NewVote(proposalContractAddress, ctx.GetClient())
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.proposalContractInstance = instance
+
+	abiCode, err := abi.JSON(strings.NewReader(contracts.VoteMetaData.ABI))
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.abi = abiCode
+	return m
+}
+
+func (s *ProposalService) GetAllAuthority(applicantDid string, applicant ethcommon.Address, pctId uint64, claim map[string]interface{}, issuer ethcommon.Address) *Response[[]proposal.Authority] {
 	// init the result
 	response := new(Response[[]proposal.Authority])
 	response.CallMode = true
+	response.Status = Response_SUCCESS
 
 	addressList, urlList, err := s.proposalContractInstance.GetAllAuthority(nil)
 	if err != nil {
@@ -38,14 +68,16 @@ func (s *DIDService) GetAllAuthority(applicantDid string, applicant ethcommon.Ad
 	return response
 }
 
-func (s *DIDService) SubmitProposal(proposalUrl string, proposed ethcommon.Address, rpcUrl string) *Response[bool] {
+func (s *ProposalService) SubmitProposal(proposalUrl string, proposed ethcommon.Address, rpcUrl string) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
+	response.Status = Response_SUCCESS
+
 	response.Data = false
 
 	// prepare parameters for submitProposal()
-	input, err := s.packInput("submitProposal", proposal.ProposalType_ADD, proposalUrl, proposed, rpcUrl)
+	input, err := PackAbiInput(s.abi, "submitProposal", proposal.ProposalType_ADD, proposalUrl, proposed, rpcUrl)
 	if err != nil {
 		log.Errorf("failed to pack input data for submitProposal(), error: %+v", err)
 		response.Status = Response_FAILURE
@@ -96,7 +128,6 @@ func (s *DIDService) SubmitProposal(proposalUrl string, proposed ethcommon.Addre
 		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = Response_SUCCESS
 		response.Data = true
 		//todo: retrieve proposalId from log, and set to response.data
 		for _, txLog := range receipt.Logs {
@@ -109,14 +140,16 @@ func (s *DIDService) SubmitProposal(proposalUrl string, proposed ethcommon.Addre
 	return response
 }
 
-func (s *DIDService) VoteProposal(proposalId *big.Int) *Response[bool] {
+func (s *ProposalService) VoteProposal(proposalId *big.Int) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
+	response.Status = Response_SUCCESS
+
 	response.Data = false
 
 	// prepare parameters for submitProposal()
-	input, err := s.packInput("VoteProposal", proposalId)
+	input, err := PackAbiInput(s.abi, "VoteProposal", proposalId)
 	if err != nil {
 		log.Errorf("failed to pack input data for VoteProposal(), error: %+v", err)
 		response.Status = Response_FAILURE
@@ -167,21 +200,22 @@ func (s *DIDService) VoteProposal(proposalId *big.Int) *Response[bool] {
 		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = Response_SUCCESS
 		response.Data = true
 	}
 
 	return response
 }
 
-func (s *DIDService) WithdrawProposal(proposalId *big.Int) *Response[bool] {
+func (s *ProposalService) WithdrawProposal(proposalId *big.Int) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
+	response.Status = Response_SUCCESS
+
 	response.Data = true
 
 	// prepare parameters for submitProposal()
-	input, err := s.packInput("WithdrawProposal", proposalId)
+	input, err := PackAbiInput(s.abi, "WithdrawProposal", proposalId)
 	if err != nil {
 		log.Errorf("failed to pack input data for WithdrawProposal(), error: %+v", err)
 		response.Status = Response_FAILURE
@@ -231,21 +265,22 @@ func (s *DIDService) WithdrawProposal(proposalId *big.Int) *Response[bool] {
 		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = Response_SUCCESS
 		response.Data = true
 	}
 
 	return response
 }
 
-func (s *DIDService) EffectProposal(proposalId *big.Int) *Response[bool] {
+func (s *ProposalService) EffectProposal(proposalId *big.Int) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
+	response.Status = Response_SUCCESS
+
 	response.Data = false
 
 	// prepare parameters for EffectProposal()
-	input, err := s.packInput("EffectProposal", proposalId)
+	input, err := PackAbiInput(s.abi, "EffectProposal", proposalId)
 	if err != nil {
 		log.Errorf("failed to pack input data for EffectProposal(), error: %+v", err)
 		response.Status = Response_FAILURE
@@ -296,17 +331,17 @@ func (s *DIDService) EffectProposal(proposalId *big.Int) *Response[bool] {
 		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 	} else {
-		response.Status = Response_SUCCESS
 		response.Data = true
 	}
 
 	return response
 }
 
-func (s *DIDService) GetAllProposalId() *Response[[]*big.Int] {
+func (s *ProposalService) GetAllProposalId() *Response[[]*big.Int] {
 	// init the result
 	response := new(Response[[]*big.Int])
 	response.CallMode = true
+	response.Status = Response_SUCCESS
 
 	// call contract getAllProposalId()
 	pIdList, err := s.proposalContractInstance.GetAllProposalId(nil)
@@ -316,16 +351,16 @@ func (s *DIDService) GetAllProposalId() *Response[[]*big.Int] {
 		response.Msg = "failed to call contract"
 		return response
 	}
-	response.Status = Response_SUCCESS
-	response.Data = pIdList
 
+	response.Data = pIdList
 	return response
 }
 
-func (s *DIDService) GetProposalId(blockNo uint64) *Response[[]*big.Int] {
+func (s *ProposalService) GetProposalId(blockNo uint64) *Response[[]*big.Int] {
 	// init the result
 	response := new(Response[[]*big.Int])
 	response.CallMode = true
+	response.Status = Response_SUCCESS
 
 	// call contract getProposalId()
 	pIdList, err := s.proposalContractInstance.GetProposalId(nil, new(big.Int).SetUint64(blockNo))
@@ -335,16 +370,16 @@ func (s *DIDService) GetProposalId(blockNo uint64) *Response[[]*big.Int] {
 		response.Msg = "failed to call contract"
 		return response
 	}
-	response.Status = Response_SUCCESS
-	response.Data = pIdList
 
+	response.Data = pIdList
 	return response
 }
 
-func (s *DIDService) GetProposal(proposalId *big.Int) *Response[*proposal.Proposal] {
+func (s *ProposalService) GetProposal(proposalId *big.Int) *Response[*proposal.Proposal] {
 	// init the result
 	response := new(Response[*proposal.Proposal])
 	response.CallMode = true
+	response.Status = Response_SUCCESS
 
 	// call contract getProposalId()
 	pType, pUrl, candidate, candidateServiceUrl, submitter, submitBlockNo, err := s.proposalContractInstance.GetProposal(nil, proposalId)
@@ -365,6 +400,5 @@ func (s *DIDService) GetProposal(proposalId *big.Int) *Response[*proposal.Propos
 	}
 
 	response.Data = proposal
-	response.Status = Response_SUCCESS
 	return response
 }

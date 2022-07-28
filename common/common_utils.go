@@ -1,7 +1,11 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
+	"github.com/xeipuuv/gojsonschema"
 	"math/rand"
 	"time"
 	"unsafe"
@@ -51,6 +55,55 @@ func FormatUTC(utcTime time.Time) string {
 func MustParseUTC(utcTime string) time.Time {
 	t, _ := time.ParseInLocation("2006-01-02T15:04:05.000", utcTime, time.UTC)
 	return t
+}
+
+func GenerateSequence256(seed []byte, count int) [][]byte {
+	result := [][]byte{}
+	current := seed
+	for i := 0; i < count; i++ {
+		current = GetHash(current)
+		result = append(result, current)
+	}
+	return result
+}
+
+func GetHash(seed []byte) []byte {
+	h := sha256.New()
+	h.Write(seed)
+	return h.Sum(nil)
+}
+
+func Uint64ToBigEndianBytes(seed uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, seed)
+	return b
+}
+
+func BigEndianBytesToUint64(seed []byte) uint64 {
+	return binary.BigEndian.Uint64(seed)
+}
+
+func VerifyWithJsonSchema(jsonSchema string, content map[string]interface{}) bool {
+	contentJson, err := json.Marshal(content)
+	if err != nil {
+		log.WithError(err).Errorf("cannot marshal content to json, content: %+v", content)
+		return false
+	}
+
+	schemaLoader := gojsonschema.NewStringLoader(jsonSchema)
+	documentLoader := gojsonschema.NewStringLoader(string(contentJson))
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		log.WithError(err).Error("failed to validate content")
+		return false
+	}
+
+	if !result.Valid() {
+		log.WithError(err).Errorf("content is not valid: %+v", result.Errors())
+		return false
+	}
+	return true
 }
 
 /*

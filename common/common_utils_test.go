@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -31,4 +32,17 @@ func Test_cloneClaim(t *testing.T) {
 	a.Equal("did:example:ebfeb1f712ebc6f1c276e12ec21", src["id"])
 	a.Equal("newId", dest["id"])
 
+}
+
+var seed = uint64(23523865082340324)
+
+// salt[0]=3630861241102706729 salt[1]=12004035919866408515 salt[2]=16714233546749475040 salt[3]=12244885108623859682 salt[4]=17247414944566619985 salt[5]=1579923115120900640 salt[6]=852460680154286706 salt[7]=14713654450971305745 salt[8]=3123376975702223225 salt[9]=8786413226062047404
+func Test_GenerateSequence256(t *testing.T) {
+	for i := 0; i < 5; i++ {
+		result := GenerateSequence256(Uint64ToBigEndianBytes(seed), 10)
+		for idx, seed := range result {
+			fmt.Printf("salt[%d]=%d ", idx, BigEndianBytesToUint64(seed))
+		}
+		fmt.Print("\n")
+	}
 }
