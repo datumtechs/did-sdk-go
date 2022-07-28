@@ -7,6 +7,7 @@ import (
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
 	"github.com/datumtechs/did-sdk-go/crypto"
+	"github.com/datumtechs/did-sdk-go/types/algorithm"
 	"github.com/datumtechs/did-sdk-go/types/claim"
 	"github.com/datumtechs/did-sdk-go/types/doc"
 	"github.com/datumtechs/did-sdk-go/types/proof"
@@ -105,7 +106,7 @@ func (s *VcService) doCreateCredential(did string, context string, pctId *big.In
 func (s *VcService) BuildProof(credential *vc.Credential, disclosureMap map[string]int) proof.Proof {
 	p := make(proof.Proof)
 	p[proof.CREATED] = credential.IssuanceDate
-	p[proof.TYPE] = "Secp256k1"
+	p[proof.TYPE] = algorithm.ALGO_SECP256K1
 	p[proof.SIGNATURE] = s.SignCredential(credential, disclosureMap)
 	return p
 }
