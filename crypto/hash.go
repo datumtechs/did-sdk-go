@@ -11,3 +11,9 @@ func SHA3Hex(data string) string {
 	io.WriteString(w, data)
 	return hex.EncodeToString(w.Sum(nil))
 }
+
+func SHA3(data string) []byte {
+	w := sha3.New256()
+	io.WriteString(w, data)
+	return w.Sum(nil)
+}

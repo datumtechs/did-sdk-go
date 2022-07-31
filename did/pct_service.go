@@ -4,7 +4,7 @@ import (
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
-	"github.com/datumtechs/did-sdk-go/types/pct"
+	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	log "github.com/sirupsen/logrus"
 	"math/big"
@@ -36,9 +36,9 @@ func NewPctService(ctx chainclient.Context) *PctService {
 	return m
 }
 
-func (s *PctService) GetPct(pctId *big.Int) *Response[*pct.Pct] {
+func (s *PctService) GetPct(pctId *big.Int) *Response[*types.Pct] {
 	// init the result
-	response := new(Response[*pct.Pct])
+	response := new(Response[*types.Pct])
 	response.CallMode = true
 	response.Status = Response_SUCCESS
 
@@ -55,7 +55,7 @@ func (s *PctService) GetPct(pctId *big.Int) *Response[*pct.Pct] {
 		return response
 	}
 
-	pctObj := new(pct.Pct)
+	pctObj := new(types.Pct)
 	pctObj.Issuer = issuer
 	pctObj.JsonSchema = jsonSchema
 	pctObj.Extra = extra

@@ -2,6 +2,7 @@ package did
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type ResponseStatus int
@@ -12,9 +13,23 @@ const (
 	Response_UNKNOWN ResponseStatus = 2
 )
 
+type TransactionInfo struct {
+	BlockNumber      uint64
+	TxHash           common.Hash
+	TransactionIndex uint
+}
+
+func NewTransactionInfo(receipt *types.Receipt) TransactionInfo {
+	return TransactionInfo{
+		BlockNumber:      receipt.BlockNumber.Uint64(),
+		TxHash:           receipt.TxHash,
+		TransactionIndex: receipt.TransactionIndex,
+	}
+}
+
 type Response[K any] struct {
 	CallMode bool
-	TxHash   common.Hash
+	TxInfo   TransactionInfo
 	Status   ResponseStatus
 	Msg      string
 	Data     K

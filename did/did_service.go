@@ -19,19 +19,30 @@ func PackAbiInput(abi abi.ABI, method string, params ...interface{}) ([]byte, er
 }
 
 type DIDService struct {
-	documentService *DocumentService
-	pctService      *PctService
-	proposalService *ProposalService
-	vcService       *VcService
+	DocumentService *DocumentService
+	PctService      *PctService
+	ProposalService *ProposalService
+	VcService       *VcService
 }
 
 func NewDIDService(ctx chainclient.Context) *DIDService {
 	log.Info("Init DID service ...")
 
 	didService := new(DIDService)
-	didService.documentService = NewDocumentService(ctx)
-	didService.pctService = NewPctService(ctx)
-	didService.proposalService = NewProposalService(ctx)
-	didService.vcService = NewVcService(ctx, didService.documentService, didService.pctService)
+	didService.DocumentService = NewDocumentService(ctx)
+	didService.PctService = NewPctService(ctx)
+	didService.ProposalService = NewProposalService(ctx)
+	didService.VcService = NewVcService(ctx, didService.DocumentService, didService.PctService)
 	return didService
 }
+
+/*type DocuementService interface {
+	CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string]
+	GetDocument(address ethcommon.Address) *Response[*doc.DidDocument]
+	AddDidPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, PublicKey string) *Response[bool]
+	HasPublicKey(address ethcommon.Address, pubKey string) *Response[bool]
+	GetDidPublicKey(address ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey]
+}
+func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string] {
+	return s.documentService.CreateDID(address, pubKeyHex)
+}*/

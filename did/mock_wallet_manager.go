@@ -40,6 +40,11 @@ func (m *MockWallet) GetAddress() common.Address {
 }
 
 // GetPrivateKey returns the organization private key
+func (m *MockWallet) SetPrivateKey(privateKey *ecdsa.PrivateKey) {
+	m.priKey = privateKey
+}
+
+// GetPrivateKey returns the organization private key
 func (m *MockWallet) GetPrivateKey() *ecdsa.PrivateKey {
 	return m.priKey
 }

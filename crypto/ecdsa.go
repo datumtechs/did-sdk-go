@@ -3,13 +3,14 @@ package crypto
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"github.com/ethereum/go-ethereum/crypto"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 )
 
 func SignSecp256k1(rawData string, privateKey *ecdsa.PrivateKey) string {
-	digestHash := crypto.Keccak256([]byte(rawData))
-	sig, err := crypto.Sign(digestHash, privateKey)
+	//digestHash := ethcrypto.Keccak256([]byte(rawData))
+	digestHash := SHA3(rawData)
+	sig, err := ethcrypto.Sign(digestHash, privateKey)
 	if err != nil {
 		log.Errorf("failed to sign credential, error: %+v", err)
 		return ""
@@ -26,13 +27,14 @@ func VerifySecp256k1Signature(rawData string, signature string, publicKey *ecdsa
 		return false
 	} else {
 		// remove recovery id (signature[64]
-		return crypto.VerifySignature(crypto.FromECDSAPub(publicKey), crypto.Keccak256([]byte(rawData)), signature[:len(signature)-1])
+		//return ethcrypto.VerifySignature(ethcrypto.FromECDSAPub(publicKey), ethcrypto.Keccak256([]byte(rawData)), signature[:len(signature)-1])
+		return ethcrypto.VerifySignature(ethcrypto.FromECDSAPub(publicKey), SHA3(rawData), signature[:len(signature)-1])
 	}
 }
 
 func HexToPublicKey(publicKey string) *ecdsa.PublicKey {
 	if pubKey, err := hex.DecodeString(publicKey); err == nil {
-		if pk, err := crypto.UnmarshalPubkey(pubKey); err == nil {
+		if pk, err := ethcrypto.UnmarshalPubkey(pubKey); err == nil {
 			return pk
 		} else {
 			log.Errorf("failed to unmarshal public key, error: %+v", err)

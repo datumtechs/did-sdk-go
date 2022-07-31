@@ -1,9 +1,10 @@
-package claim
+package types
 
 import (
 	"encoding/json"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
+	"github.com/datumtechs/did-sdk-go/keys/claim"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"sort"
@@ -17,36 +18,42 @@ const (
 	EXISTED       int = 2
 )
 
-type ClaimKey string
-
-const (
-	SEED      ClaimKey = "seed"
-	ROOT_HASH ClaimKey = "rootHash"
-)
-
 type Claim map[string]interface{}
 
 func (c Claim) GetSeed() uint64 {
-	if c[string(SEED)] == nil {
+	if c[claimkeys.SEED] == nil {
 		return 0
 	} else {
-		seedString := c[string(SEED)].(string)
-		if seed, err := strconv.ParseUint(seedString, 10, 64); err != nil {
-			log.Errorf("cannot parse seed, %s", seedString)
+		switch value := c[claimkeys.SEED].(type) {
+		case uint64:
+			return value
+		case string:
+			seedString := c[claimkeys.SEED].(string)
+			if seed, err := strconv.ParseUint(seedString, 10, 64); err != nil {
+				log.Errorf("cannot parse seed, %s", seedString)
+				return 0
+			} else {
+				return seed
+			}
+		default:
 			return 0
-		} else {
-			return seed
 		}
 	}
 }
 
+//
 func (c Claim) GetHash(disclosures map[string]int, seed uint64) string {
+	newClaim := common.Clone(c)
+	//遍历时只需要有效字段，因此需要删除可能存在的key
+	delete(newClaim, claimkeys.SEED)
+	delete(newClaim, claimkeys.ROOT_HASH)
+
 	if disclosures == nil {
 		disclosures = make(map[string]int)
 	}
 	if len(disclosures) == 0 {
 		//每个字段都需要披露
-		for key, _ := range c {
+		for key, _ := range newClaim {
 			disclosures[key] = int(DISCLOSED)
 		}
 	}
@@ -54,26 +61,23 @@ func (c Claim) GetHash(disclosures map[string]int, seed uint64) string {
 	//对claim进行加盐，并计算ClaimRootHash
 	if seed == 0 {
 		seed = rand.Uint64()
-		c[string(SEED)] = strconv.FormatUint(seed, 10)
 		//fmt.Printf("generate new seed: %d\n", seed)
 	}
 
-	//为claim的有效字段，生成新的值: json(original_value)+string(seedHash)
-	dest := common.Clone(c)
-	//遍历时只需要有效字段，因此需要删除可能存在的key
-	delete(dest, string(SEED))
-	delete(dest, string(ROOT_HASH))
+	//为claim的有效key，生成新newValue:= json(original_value)+string(hash(seed))
+	//并hash(newValue).hex(), 写入builder
+	allNewValueHashesBuilder := strings.Builder{}
+	GenerateClaimSaltForMap(newClaim, common.Uint64ToBigEndianBytes(seed), &allNewValueHashesBuilder)
+	newClaim[claimkeys.SEED] = seed
+	newClaim[claimkeys.ROOT_HASH] = crypto.SHA3Hex(allNewValueHashesBuilder.String())
 
-	hashStringBuilder := strings.Builder{}
-	GenerateClaimSaltForMap(dest, common.Uint64ToBigEndianBytes(seed), &hashStringBuilder)
-	claimRootHash := crypto.SHA3Hex(hashStringBuilder.String())
-	c[string(ROOT_HASH)] = claimRootHash
+	c[claimkeys.SEED] = seed
+	c[claimkeys.ROOT_HASH] = crypto.SHA3Hex(allNewValueHashesBuilder.String())
 
 	//json.Marshal会对key按字典顺序排列
-	claimRawdata, _ := json.Marshal(c)
-	//fmt.Printf("claimRawdata:%s\n", claimRawdata)
-	return crypto.SHA3Hex(string(claimRawdata))
-
+	claimRawData, _ := json.Marshal(newClaim)
+	//fmt.Printf("claimRawdata:%s\n", claimRawData)
+	return crypto.SHA3Hex(string(claimRawData))
 }
 
 func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, builder *strings.Builder) {
@@ -81,6 +85,7 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 	for key := range claimMapSalt {
 		keys = append(keys, key)
 	}
+	//排序keys
 	sort.Strings(keys)
 	for _, key := range keys {
 		v := claimMapSalt[key]

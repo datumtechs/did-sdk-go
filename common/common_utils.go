@@ -106,6 +106,11 @@ func VerifyWithJsonSchema(jsonSchema string, content map[string]interface{}) boo
 	return true
 }
 
+func MapToJson(m map[string]interface{}) string {
+	dataMap, _ := json.Marshal(m)
+	return string(dataMap)
+}
+
 /*
 func CloneMap(src map[string]interface{}) map[string]interface{} {
 	if src == nil || len(src) == 0 {

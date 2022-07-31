@@ -1,33 +1,30 @@
-package vc
+package types
 
 import (
 	"encoding/json"
-	"github.com/datumtechs/did-sdk-go/types/claim"
-	"github.com/datumtechs/did-sdk-go/types/proof"
+	"github.com/datumtechs/did-sdk-go/common"
+	"github.com/datumtechs/did-sdk-go/keys/vc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
-	"math/big"
 )
 
-/*const (
-	TYPE_VC           string = "VerifiableCredential"
-	TYPE_VP           string = "VerifiablePresentation"
-	PROOF_SALT        string = "salt"
-	CLAIM             string = "claim"
-	PROOF_DISCLOSURES string = "disclosures"
-)*/
+const (
+	VERSION = "1.0.0"
+)
 
 type Credential struct {
-	Context        string
-	Id             string
-	PctId          *big.Int
-	Type           []string
-	Issuer         string // the issuer DID.
-	IssuanceDate   string
-	ExpirationDate string
-	Claim          claim.Claim
-	Proof          proof.Proof
-	Holder         string // the holder DID.
+	Context        string            `json:"context,omitempty"`
+	Version        string            `json:"version,omitempty"`
+	Id             string            `json:"id,omitempty"`
+	Type           []string          `json:"type,omitempty"`
+	Issuer         string            `json:"issuer,omitempty"` // the issuer DID.
+	IssuanceDate   string            `json:"issuanceDate,omitempty"`
+	ExpirationDate string            `json:"expirationDate,omitempty"`
+	ClaimData      Claim             `json:"claimData,omitempty"`
+	ClaimMeta      map[string]string `json:"claimMeta,omitempty"`
+	Proof          Proof             `json:"proof,omitempty"`
+	Holder         string            `json:"holder,omitempty"` // the holder DID.
+
 }
 
 type CredentialWrapper struct {
@@ -36,10 +33,10 @@ type CredentialWrapper struct {
 	Disclosure map[string]int
 }
 
-func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int, seed uint64) string {
+/*func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int, seed uint64) string {
 	rawCredMap := c.GetRawCredentialMap()
-	claimHash := c.Claim.GetHash(disclosures, seed)
-	rawCredMap["claimHash"] = claimHash
+	claimHash := c.ClaimData.GetHash(disclosures, seed)
+	rawCredMap["claimData"] = claimHash
 	return ToJson(rawCredMap)
 }
 
@@ -54,9 +51,17 @@ func (c *Credential) GetRawCredentialMap() map[string]interface{} {
 	cred["expirationDate"] = c.ExpirationDate
 	return cred
 }
+*/
+
+func (c *Credential) GetRaw(disclosureMap map[string]int, seed uint64) string {
+	claimHash := c.ClaimData.GetHash(disclosureMap, seed)
+	credMap := c.ToMap()
+	delete(credMap, vckeys.PROOF)
+	credMap[vckeys.CLAIM_DATA] = claimHash
+	return common.MapToJson(credMap)
+}
 
 // todo: convert to map by reflect
-
 func (c *Credential) ToMap() map[string]interface{} {
 	data, err := json.Marshal(&c)
 	if err != nil {
@@ -72,6 +77,7 @@ func (c *Credential) ToMap() map[string]interface{} {
 	return m
 }
 
+/*
 func (c *Credential) GenerateRawData(claimHash string) string {
 	cred := make(map[string]interface{})
 	cred["context"] = c.Context
@@ -84,12 +90,7 @@ func (c *Credential) GenerateRawData(claimHash string) string {
 	cred["claimHash"] = claimHash
 
 	return ToJson(cred)
-}
-
-func ToJson(m map[string]interface{}) string {
-	dataMap, _ := json.Marshal(m)
-	return string(dataMap)
-}
+}*/
 
 type ProofBrief struct {
 	CredentialHash ethcommon.Hash
