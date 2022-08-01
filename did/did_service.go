@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	didContractAddress      = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
-	pctContractAddress      = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
-	proposalContractAddress = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
-	vcContractAddress       = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
+	didContractAddress      = ethcommon.HexToAddress("0xaF90C0e740B2741c227E6d11daF001CfE819ec31")
+	pctContractAddress      = ethcommon.HexToAddress("0xb99De0f8d5AebDE6bF1EbCfc8E9Ce1a0f5b61A47")
+	proposalContractAddress = ethcommon.HexToAddress("0x47cbAc8e7bA083459d9D641505c7b9695d9476C9")
+	vcContractAddress       = ethcommon.HexToAddress("0x2A38BEb5760395980d3211E301bDf8EBAA3E36E4")
 )
 
 func PackAbiInput(abi abi.ABI, method string, params ...interface{}) ([]byte, error) {
