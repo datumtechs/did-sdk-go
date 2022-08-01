@@ -1,6 +1,7 @@
 package did
 
 import (
+	"crypto/ecdsa"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
@@ -34,6 +35,12 @@ func NewPctService(ctx chainclient.Context) *PctService {
 	}
 	m.abi = abiCode
 	return m
+}
+
+type CreatePctReq struct {
+	PrivateKey *ecdsa.PrivateKey // the private key to sign the credential
+	PctJson    string
+	Extra      []byte
 }
 
 func (s *PctService) GetPct(pctId *big.Int) *Response[*types.Pct] {

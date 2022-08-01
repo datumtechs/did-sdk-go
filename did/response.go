@@ -1,7 +1,6 @@
 package did
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -15,14 +14,14 @@ const (
 
 type TransactionInfo struct {
 	BlockNumber      uint64
-	TxHash           common.Hash
+	TxHash           string
 	TransactionIndex uint
 }
 
 func NewTransactionInfo(receipt *types.Receipt) TransactionInfo {
 	return TransactionInfo{
 		BlockNumber:      receipt.BlockNumber.Uint64(),
-		TxHash:           receipt.TxHash,
+		TxHash:           receipt.TxHash.Hex(),
 		TransactionIndex: receipt.TransactionIndex,
 	}
 }

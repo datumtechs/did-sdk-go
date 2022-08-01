@@ -37,11 +37,17 @@ func (s PublicKeyStatus) String() string {
 	}
 }
 
-type DocumentStatus int
+type DocumentStatus int8
 
 const (
 	DOC_ACTIVATION DocumentStatus = iota
 	DOC_DEACTIVATION
+)
+
+const (
+	DOC_EVENT_CREATE        uint8 = 0
+	DOC_EVEN_AUTHENTICATION uint8 = 1
+	DOC_EVEN_PUBLICKEY      uint8 = 2
 )
 
 func (s DocumentStatus) String() string {

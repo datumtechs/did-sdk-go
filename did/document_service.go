@@ -141,12 +141,6 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	return response
 }
 
-const (
-	did_EVENT_FIELD_CREATE         uint8 = 0
-	did_EVENT_FIELD_AUTHENTICATION uint8 = 1
-	did_EVENT_FIELD_PUBLICKEY      uint8 = 2
-)
-
 func (s *DocumentService) QueryDidDocument(did string) *Response[*types.DidDocument] {
 	// init the result
 	response := new(Response[*types.DidDocument])
@@ -206,11 +200,11 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 				return response
 			}
 			switch event.FieldKey {
-			case did_EVENT_FIELD_CREATE:
+			case types.DOC_EVENT_CREATE:
 				document.Created = event.FieldValue
 				document.Updated = event.UpdateTime
 				prevBlock = event.BlockNumber
-			case did_EVENT_FIELD_PUBLICKEY:
+			case types.DOC_EVEN_PUBLICKEY:
 				didPublicKey := types.ParseToDidPublicKey(document.Id, event.FieldValue)
 				document.Updated = event.UpdateTime
 				document.AddDidPublicKey(didPublicKey)
@@ -281,7 +275,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	updateTime := common.FormatUTC(now)
 
 	fieldValue := types.BuildFieldValueOfPublicKey(req.PublicKey, req.PublicKeyType, strconv.Itoa(req.Index), types.PublicKey_VALID)
-	input, err := PackAbiInput(s.abi, "setAttribute", did_EVENT_FIELD_PUBLICKEY, fieldValue, updateTime)
+	input, err := PackAbiInput(s.abi, "setAttribute", types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 
 	if err != nil {
 		log.Errorf("failed to pack input data for SetAttribute(): %+v", err)
@@ -308,7 +302,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
 	// call contract CreatePid()
-	tx, err := s.didContractInstance.SetAttribute(opts, did_EVENT_FIELD_PUBLICKEY, fieldValue, updateTime)
+	tx, err := s.didContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call SetAttribute(), address: %s", address)
 		response.Status = Response_FAILURE
@@ -359,15 +353,19 @@ func (s *DocumentService) isDidExist(address ethcommon.Address) *Response[bool] 
 func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Response[types.DocumentStatus] {
 	response := new(Response[types.DocumentStatus])
 	response.CallMode = true
+	response.Status = Response_FAILURE
 
 	status, err := s.didContractInstance.GetStatus(nil, address)
 	if err != nil {
 		log.WithError(err).Errorf("failed to find did document status,address:%s", address)
-		response.Status = Response_FAILURE
 		response.Msg = "failed to find did document status"
 		return response
 	}
-	//todo: 状态0，1外，增加 -1：不存在;或者状态1，2，9表示不存在
+	//  -1：不存在
+	if status == -1 {
+		response.Msg = "did document does not exist"
+		return response
+	}
 	response.Data = types.DocumentStatus(status)
 	response.Status = Response_SUCCESS
 	return response
