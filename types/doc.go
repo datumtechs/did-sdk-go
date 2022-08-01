@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const (
+	DID_PARTERN_PREFIX = "did:pid"
+)
+
 type PublicKeyType string
 
 const (

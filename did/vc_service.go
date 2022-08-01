@@ -22,12 +22,6 @@ import (
 	"time"
 )
 
-const (
-	vc_EVENT_FIELD_SIGNERPUBKEY uint8  = 0
-	vc_EVENT_FIELD_SIGNATURE    uint8  = 1
-	DEFAULT_CREDENTIAL_CONTEXT  string = "https://www.w3.org/2018/credentials/v1"
-)
-
 type VcService struct {
 	ctx                chainclient.Context
 	abi                abi.ABI
@@ -80,7 +74,7 @@ func (s *VcService) CreateCredential(req CreateCredentialReq) *Response[types.Cr
 // check list:
 // 1. req.Did, the applicant, vc holder should exist.
 // 2. req.Issuer, the issuer Did should exist and valid
-// 3. the issuer document should include the req.publicKeyId and req.publicKey
+// 3. if req.publicKeyId is provided, the issuer document should include the req.publicKeyId; else use the first valid public key in document.
 // 4. the req.privateKey and PublicKey in did document according to req.publicKeyId should be a pair of.
 // 5. req.Claim should march the req.PctId's template
 func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Response[types.Credential] {
@@ -149,7 +143,7 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 			return response
 		}
 
-		// 3. the issuer document should include the req.publicKeyId and req.publicKey
+		// 3. the issuer document should include the req.publicKeyId
 		// 4. the req.privateKey and PublicKey in did document according to req.publicKeyId should be a pair of.
 
 		issuerDocResp := s.DocumentService.QueryDidDocumentByAddress(issuerAddress)
@@ -212,7 +206,7 @@ func generateCredential(req CreateCredentialReq) *types.Credential {
 	credential.Id = uuid.NewString()
 	credential.Context = req.Context
 	if len(credential.Context) == 0 {
-		credential.Context = DEFAULT_CREDENTIAL_CONTEXT
+		credential.Context = types.DEFAULT_CREDENTIAL_CONTEXT
 	}
 	credential.Holder = req.Did
 	credential.IssuanceDate = common.FormatUTC(time.Now().UTC())
@@ -332,11 +326,11 @@ func (s *VcService) GetVCProof(credentialHash ethcommon.Hash) *Response[*types.P
 				return response
 			}
 			switch event.FieldKey {
-			case vc_EVENT_FIELD_SIGNATURE:
+			case types.VC_EVENT_SIGNATURE:
 				proof.AddSignature(event.FieldValue)
 
 				prevBlock = event.BlockNumber
-			case vc_EVENT_FIELD_SIGNERPUBKEY:
+			case types.VC_EVENT_SIGNERPUBKEY:
 				proof.AddSignerPubKey(event.FieldValue)
 
 				prevBlock = event.BlockNumber

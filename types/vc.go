@@ -12,6 +12,20 @@ const (
 	VERSION = "1.0.0"
 )
 
+const (
+	CREDENTIAL_TYPE_VC string = "VerifiableCredential"
+	CREDENTIAL_TYPE_VP string = "VerifiablePresentation"
+)
+
+const (
+	DEFAULT_CREDENTIAL_CONTEXT string = "https://www.w3.org/2018/credentials/v1"
+)
+
+const (
+	VC_EVENT_SIGNERPUBKEY uint8 = 0
+	VC_EVENT_SIGNATURE    uint8 = 1
+)
+
 type Credential struct {
 	Context        string            `json:"context,omitempty"`
 	Version        string            `json:"version,omitempty"`

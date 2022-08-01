@@ -78,6 +78,9 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	createTime := common.FormatUTC(now)
 	updateTime := createTime
 
+	if len(req.PublicKeyType) == 0 {
+		req.PublicKeyType = types.PublicKey_SECP256K1
+	}
 	publicKeyAsInput := types.BuildFieldValueOfPublicKey(req.PublicKey, req.PublicKeyType, "1", types.PublicKey_VALID)
 
 	input, err := PackAbiInput(s.abi, "CreateDid", createTime, publicKeyAsInput, updateTime)

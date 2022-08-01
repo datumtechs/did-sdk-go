@@ -2,10 +2,13 @@ package did
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -26,7 +29,7 @@ func setup() {
 
 	privateKey = MockWalletInstance().priKey
 	publicKeyId = MockWalletInstance().walletAddress.Hex() + "#keys-1"
-
+	fmt.Printf("privateKey:%s\n", hex.EncodeToString(crypto.FromECDSA(privateKey)))
 	ethcontext := chainclient.NewEthClientContext("", "lat", MockWalletInstance())
 	didService = NewDIDService(ethcontext)
 }
@@ -57,10 +60,12 @@ func Test_createVC(t *testing.T) {
 	req.Issuer = issuer
 	req.PrivateKey = privateKey
 	req.PublicKeyId = publicKeyId
-
+	req.Type = types.CREDENTIAL_TYPE_VC
 	response := didService.VcService.CreateCredentialSimple(*req)
 
-	t.Logf("response.Data:%+v", response.Data)
+	b, _ := json.Marshal(response.Data)
+
+	t.Logf("response.Data:%s", string(b))
 
 	a := assert.New(t)
 	a.Equal(Response_SUCCESS, response.Status)
@@ -85,8 +90,14 @@ func Test_verifyVC(t *testing.T) {
 	req.Issuer = issuer
 	req.PrivateKey = privateKey
 	req.PublicKeyId = publicKeyId
+	req.Type = types.CREDENTIAL_TYPE_VC
 
 	response := didService.VcService.CreateCredentialSimple(*req)
+
+	b, _ := json.Marshal(response.Data)
+
+	t.Logf("VerifiableCredential:%s", string(b))
+
 	t.Logf("response.Status:%d", response.Status)
 	cred := response.Data
 	t.Logf("%#v", cred)
