@@ -42,6 +42,8 @@ func (m *MockWallet) GetAddress() common.Address {
 // GetPrivateKey returns the organization private key
 func (m *MockWallet) SetPrivateKey(privateKey *ecdsa.PrivateKey) {
 	m.priKey = privateKey
+	m.pubKey = &privateKey.PublicKey
+	m.walletAddress = crypto.PubkeyToAddress(privateKey.PublicKey)
 }
 
 // GetPrivateKey returns the organization private key

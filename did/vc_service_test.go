@@ -1,13 +1,12 @@
 package did
 
 import (
-	"crypto/ecdsa"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -20,18 +19,22 @@ var did = "did:pid:lat1x4w7852dxs69sy2mgf8w0s7tmvqx3cz2ydaxq4"
 var doc_context = "http://datumtech.com/did/v1"
 var pctId = new(big.Int).SetUint64(1)
 var issuer = "did:pid:lat1x4w7852dxs69sy2mgf8w0s7tmvqx3cz2ydaxq4"
-var publicKeyId string
-var privateKey *ecdsa.PrivateKey
+
+var privateKey, _ = crypto.HexToECDSA("b24285967575de7d5563e35213a806c60d69094faa509025f2ab5437017d343a")
+var publicKey = hexutil.Encode(crypto.FromECDSAPub(&privateKey.PublicKey))
+var address = platoncommon.Address(crypto.PubkeyToAddress(privateKey.PublicKey))
+var publicKeyId string //= address.String() + "#keys-1", 需要首先初始化hrp
 
 func setup() {
 	fmt.Println("initing........")
 	InitMockWallet()
-
-	privateKey = MockWalletInstance().priKey
-	publicKeyId = MockWalletInstance().walletAddress.Hex() + "#keys-1"
-	fmt.Printf("privateKey:%s\n", hex.EncodeToString(crypto.FromECDSA(privateKey)))
-	ethcontext := chainclient.NewEthClientContext("", "lat", MockWalletInstance())
+	MockWalletInstance().SetPrivateKey(privateKey)
+	ethcontext := chainclient.NewEthClientContext("ws://8.219.126.197:6790", "lat", MockWalletInstance())
 	didService = NewDIDService(ethcontext)
+	fmt.Println("publicKey:" + publicKey)
+	fmt.Println("address:" + address.String())
+
+	publicKeyId = address.String() + "#keys-1"
 }
 
 func Test_bech32(t *testing.T) {

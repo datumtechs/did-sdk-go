@@ -39,23 +39,46 @@ func NewProposalService(ctx chainclient.Context) *ProposalService {
 	return m
 }
 
+func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
+	// init the result
+	response := new(Response[types.Authority])
+	response.CallMode = true
+	response.Status = Response_FAILURE
+
+	resp := s.GetAllAuthority()
+	if resp.Status != Response_SUCCESS {
+		CopyResp(resp, response)
+		return response
+	}
+	for _, item := range resp.Data {
+		if item.Address == address {
+			response.Data = item
+			response.Status = Response_SUCCESS
+			return response
+		}
+	}
+	response.Status = Response_FAILURE
+	response.Msg = "Did not found"
+	return response
+
+}
+
 func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 	// init the result
 	response := new(Response[[]types.Authority])
 	response.CallMode = true
-	response.Status = Response_SUCCESS
+	response.Status = Response_FAILURE
 
 	addressList, urlList, err := s.proposalContractInstance.GetAllAuthority(nil)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetAllAuthority(), error: %+v", err)
-		response.Status = Response_FAILURE
+
 		response.Msg = "failed to call contract"
 		return response
 	}
 
 	if len(addressList) != len(urlList) {
 		log.WithError(err).Errorf("data returned from GetAllAuthority() error")
-		response.Status = Response_FAILURE
 		response.Msg = "data returned from contract error"
 		return response
 	}
@@ -66,6 +89,7 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 		authorityList[i].Url = urlList[i]
 	}
 	response.Data = authorityList
+	response.Status = Response_SUCCESS
 	return response
 }
 

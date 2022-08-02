@@ -176,7 +176,7 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 	rawData := credential.GetRaw(nil, 0)
 
 	//fmt.Printf("sign rawData: %s\n", rawData)
-	sig := crypto.SignSecp256k1(rawData, req.PrivateKey)
+	_, sig := crypto.SignSecp256k1(rawData, req.PrivateKey)
 
 	//生成proof
 	proofMap := make(types.Proof)

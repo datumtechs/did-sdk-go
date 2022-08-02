@@ -73,7 +73,7 @@ type DidPublicKey struct {
 	Type string
 	//公钥16进制字符串
 	PublicKey string
-	//公钥是否撤消 0: valie; 1: invalid
+	//公钥是否撤消 0: valid; 1: invalid
 	Status string
 }
 
@@ -166,6 +166,17 @@ func (doc *DidDocument) FindDidPublicKeyByDidPublicKeyId(didPublicKeyId string) 
 	return nil
 }
 
+func (doc *DidDocument) FindDidPublicKeyByPublicKey(publicKeyHex string) *DidPublicKey {
+	if doc.PublicKey == nil || len(doc.PublicKey) == 0 {
+		return nil
+	}
+	for _, didPubKey := range doc.PublicKey {
+		if didPubKey.PublicKey == publicKeyHex {
+			return didPubKey
+		}
+	}
+	return nil
+}
 func BuildDid(address common.Address) string {
 	return fmt.Sprintf("did:pid:%s", platoncommon.Address(address).Bech32())
 }

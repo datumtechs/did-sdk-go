@@ -7,15 +7,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func SignSecp256k1(rawData string, privateKey *ecdsa.PrivateKey) string {
+func SignSecp256k1(rawData string, privateKey *ecdsa.PrivateKey) (digestHash []byte, signature string) {
 	//digestHash := ethcrypto.Keccak256([]byte(rawData))
-	digestHash := SHA3(rawData)
+	digestHash = SHA3(rawData)
 	sig, err := ethcrypto.Sign(digestHash, privateKey)
 	if err != nil {
 		log.Errorf("failed to sign credential, error: %+v", err)
-		return ""
+		return nil, ""
 	}
-	return hex.EncodeToString(sig)
+	signature = hex.EncodeToString(sig)
+	return
 }
 
 func VerifySecp256k1Signature(rawData string, signature string, publicKey *ecdsa.PublicKey) bool {
