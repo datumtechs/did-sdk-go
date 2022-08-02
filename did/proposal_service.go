@@ -17,7 +17,7 @@ import (
 type ProposalService struct {
 	ctx                      chainclient.Context
 	abi                      abi.ABI
-	proposalContractInstance *contracts.Vote
+	proposalContractInstance *contracts.Proposal
 }
 
 func NewProposalService(ctx chainclient.Context) *ProposalService {
@@ -25,13 +25,13 @@ func NewProposalService(ctx chainclient.Context) *ProposalService {
 	m := new(ProposalService)
 	m.ctx = ctx
 
-	instance, err := contracts.NewVote(proposalContractAddress, ctx.GetClient())
+	instance, err := contracts.NewProposal(proposalContractAddress, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
 	m.proposalContractInstance = instance
 
-	abiCode, err := abi.JSON(strings.NewReader(contracts.VoteMetaData.ABI))
+	abiCode, err := abi.JSON(strings.NewReader(contracts.ProposalMetaData.ABI))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,6 +40,31 @@ func NewProposalService(ctx chainclient.Context) *ProposalService {
 }
 
 func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
+	// init the result
+	response := new(Response[types.Authority])
+	response.CallMode = true
+	response.Status = Response_FAILURE
+
+	address, url, _, err := s.proposalContractInstance.GetAuthority(nil, address)
+	if err != nil {
+		log.WithError(err).Errorf("failed to call GetAuthority(), address: %s", address.String())
+		response.Msg = "failed to call contract"
+		return response
+	}
+	if address == (ethcommon.Address{}) || len(url) > 0 {
+		response.Status = Response_FAILURE
+		response.Msg = "authority info is broken"
+	}
+	auth := types.Authority{}
+	auth.Address = address
+	auth.Url = url
+	response.Status = Response_SUCCESS
+	response.Data = auth
+	return response
+
+}
+
+/*func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
 	// init the result
 	response := new(Response[types.Authority])
 	response.CallMode = true
@@ -61,7 +86,7 @@ func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[type
 	response.Msg = "Did not found"
 	return response
 
-}
+}*/
 
 func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 	// init the result
@@ -69,7 +94,7 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	addressList, urlList, err := s.proposalContractInstance.GetAllAuthority(nil)
+	addressList, urlList, _, err := s.proposalContractInstance.GetAllAuthority(nil)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetAllAuthority(), error: %+v", err)
 
@@ -438,7 +463,7 @@ func (s *ProposalService) GetProposal(proposalId *big.Int) *Response[*types.Prop
 	response.Status = Response_SUCCESS
 
 	// call contract getProposalId()
-	pType, pUrl, candidate, candidateServiceUrl, submitter, submitBlockNo, err := s.proposalContractInstance.GetProposal(nil, proposalId)
+	pType, pUrl, candidate, candidateServiceUrl, submitter, submitBlockNo, _, err := s.proposalContractInstance.GetProposal(nil, proposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetProposal(),proposalId:%d", proposalId)
 		response.Status = Response_FAILURE
