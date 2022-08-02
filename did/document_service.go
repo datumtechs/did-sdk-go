@@ -83,7 +83,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	}
 	publicKeyAsInput := types.BuildFieldValueOfPublicKey(req.PublicKey, req.PublicKeyType, "1", types.PublicKey_VALID)
 
-	input, err := PackAbiInput(s.abi, "CreateDid", createTime, publicKeyAsInput, updateTime)
+	input, err := PackAbiInput(s.abi, "createDid", createTime, publicKeyAsInput, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed topack input data for CreateDid(),PublicKey:%s", req.PublicKey)
 		response.Msg = "failed to pack input data"
