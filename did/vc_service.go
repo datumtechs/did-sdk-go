@@ -56,7 +56,7 @@ type CreateCredentialReq struct {
 	Type           string
 	Issuer         string            // the issuer did
 	PrivateKey     *ecdsa.PrivateKey // the private key to sign the credential
-	PublicKeyId    string            // public key according to PublicKeyId should match the PrivateKey
+	PublicKeyId    string            // public key according to PublicKeyId should match the PrivateKey;if req.publicKeyId is provided, the issuer document should include the req.publicKeyId; else use the first valid public key in document.
 	Did            string            // the applicant, vc holder
 	PctId          *big.Int
 	Claim          types.Claim

@@ -30,8 +30,8 @@ var (
 
 // DidMetaData contains all meta data concerning the Did contract.
 var DidMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"identity\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"PIDAttributeChange\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"int8\",\"name\":\"status\",\"type\":\"int8\"}],\"name\":\"changeStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"createTime\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"publicKey\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"createPid\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"getLatestBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"getStatus\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"isIdentityExist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"setAttribute\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b50610a95806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c8063715018a611610066578063715018a61461010e5780638da5cb5b1461011657806396d6b63414610131578063e4e9f5c014610144578063f2fde38b1461016557600080fd5b806301dbe85814610098578063170abf9c146100ad57806330ccebb5146100d55780633bcc8a87146100fb575b600080fd5b6100ab6100a63660046107d5565b610178565b005b6100c06100bb3660046107ff565b61024f565b60405190151581526020015b60405180910390f35b6100e86100e33660046107ff565b6102bc565b60405160009190910b81526020016100cc565b6100c06101093660046108cb565b61033e565b6100ab610455565b6033546040516001600160a01b0390911681526020016100cc565b6100c061013f366004610947565b610469565b6101576101523660046107ff565b610635565b6040519081526020016100cc565b6100ab6101733660046107ff565b6106b0565b606654600090815b818110156101da57336001600160a01b0316606682815481106101a5576101a5610996565b6000918252602090912001546001600160a01b0316036101c857600192506101da565b806101d2816109ac565b915050610180565b50816102275760405162461bcd60e51b8152602060048201526017602482015276191bd8dd5b595b9d08191bd95cc81b9bdd08195e1a5cdd604a1b60448201526064015b60405180910390fd5b5050336000908152606560205260409020600101805460ff191660ff92909216919091179055565b6066546000908190815b818110156102b357846001600160a01b03166066828154811061027e5761027e610996565b6000918252602090912001546001600160a01b0316036102a157600192506102b3565b806102ab816109ac565b915050610259565b50909392505050565b60665460009060001990825b818110156102b357846001600160a01b0316606682815481106102ed576102ed610996565b6000918252602090912001546001600160a01b03160361032c576001600160a01b038516600090815260656020526040812060010154900b92506102b3565b80610336816109ac565b9150506102c8565b6066546000908190815b818110156103a257336001600160a01b03166066828154811061036d5761036d610996565b6000918252602090912001546001600160a01b03160361039057600192506103a2565b8061039a816109ac565b915050610348565b50816103ea5760405162461bcd60e51b8152602060048201526017602482015276191bd8dd5b595b9d08191bd95cc81b9bdd08195e1a5cdd604a1b604482015260640161021e565b33600081815260656020526040908190205490517f78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd9161042f918a918a918a90610a20565b60405180910390a250503360009081526065602052604090204390555060019392505050565b61045d610729565b6104676000610783565b565b6066546000908190815b818110156104cd57336001600160a01b03166066828154811061049857610498610996565b6000918252602090912001546001600160a01b0316036104bb57600192506104cd565b806104c5816109ac565b915050610473565b50811561051c5760405162461bcd60e51b815260206004820152601760248201527f646f63756d656e7420616c726561647920657869737473000000000000000000604482015260640161021e565b336001600160a01b03167f78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd60008860008860405161055d9493929190610a20565b60405180910390a2336001600160a01b03167f78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd6001876000886040516105a69493929190610a20565b60405180910390a25050604080518082018252438152600060208083018281523380845260659092529382209251835592516001928301805460ff191660ff90921691909117905560668054808401825591527f46501879b8ca8525e8c2fd519e2fbfcfa2ebea26501294aa02cbfcfb12e943540180546001600160a01b031916909217909155949350505050565b6066546000908190815b818110156102b357846001600160a01b03166066828154811061066457610664610996565b6000918252602090912001546001600160a01b03160361069e576001600160a01b03851660009081526065602052604090205492506102b3565b806106a8816109ac565b91505061063f565b6106b8610729565b6001600160a01b03811661071d5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b606482015260840161021e565b61072681610783565b50565b6033546001600160a01b031633146104675760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015260640161021e565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b6000602082840312156107e757600080fd5b81358060000b81146107f857600080fd5b9392505050565b60006020828403121561081157600080fd5b81356001600160a01b03811681146107f857600080fd5b634e487b7160e01b600052604160045260246000fd5b600082601f83011261084f57600080fd5b813567ffffffffffffffff8082111561086a5761086a610828565b604051601f8301601f19908116603f0116810190828211818310171561089257610892610828565b816040528381528660208588010111156108ab57600080fd5b836020870160208301376000602085830101528094505050505092915050565b6000806000606084860312156108e057600080fd5b833560ff811681146108f157600080fd5b9250602084013567ffffffffffffffff8082111561090e57600080fd5b61091a8783880161083e565b9350604086013591508082111561093057600080fd5b5061093d8682870161083e565b9150509250925092565b60008060006060848603121561095c57600080fd5b833567ffffffffffffffff8082111561097457600080fd5b6109808783880161083e565b9450602086013591508082111561090e57600080fd5b634e487b7160e01b600052603260045260246000fd5b6000600182016109cc57634e487b7160e01b600052601160045260246000fd5b5060010190565b6000815180845260005b818110156109f9576020818501810151868301820152016109dd565b81811115610a0b576000602083870101525b50601f01601f19169290920160200192915050565b60ff85168152608060208201526000610a3c60808301866109d3565b8460408401528281036060840152610a5481856109d3565b97965050505050505056fea2646970667358221220d671802dabff462e3654d9f2bdf1ee96bba5008a801af38cce2e27575fac56d264736f6c634300080d0033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"identity\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"DIDAttributeChange\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"int8\",\"name\":\"status\",\"type\":\"int8\"}],\"name\":\"changeStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"createTime\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"publicKey\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"createDid\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"getLatestBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"getStatus\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"identify\",\"type\":\"address\"}],\"name\":\"isIdentityExist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"setAttribute\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b50610a95806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c8063520aeecd11610066578063520aeecd1461010e578063715018a6146101215780638da5cb5b14610129578063e4e9f5c014610144578063f2fde38b1461016557600080fd5b806301dbe85814610098578063170abf9c146100ad57806330ccebb5146100d55780633bcc8a87146100fb575b600080fd5b6100ab6100a63660046107d5565b610178565b005b6100c06100bb3660046107ff565b61024f565b60405190151581526020015b60405180910390f35b6100e86100e33660046107ff565b6102bc565b60405160009190910b81526020016100cc565b6100c06101093660046108cb565b61033e565b6100c061011c366004610947565b610455565b6100ab610621565b6033546040516001600160a01b0390911681526020016100cc565b6101576101523660046107ff565b610635565b6040519081526020016100cc565b6100ab6101733660046107ff565b6106b0565b606654600090815b818110156101da57336001600160a01b0316606682815481106101a5576101a5610996565b6000918252602090912001546001600160a01b0316036101c857600192506101da565b806101d2816109ac565b915050610180565b50816102275760405162461bcd60e51b8152602060048201526017602482015276191bd8dd5b595b9d08191bd95cc81b9bdd08195e1a5cdd604a1b60448201526064015b60405180910390fd5b5050336000908152606560205260409020600101805460ff191660ff92909216919091179055565b6066546000908190815b818110156102b357846001600160a01b03166066828154811061027e5761027e610996565b6000918252602090912001546001600160a01b0316036102a157600192506102b3565b806102ab816109ac565b915050610259565b50909392505050565b60665460009060001990825b818110156102b357846001600160a01b0316606682815481106102ed576102ed610996565b6000918252602090912001546001600160a01b03160361032c576001600160a01b038516600090815260656020526040812060010154900b92506102b3565b80610336816109ac565b9150506102c8565b6066546000908190815b818110156103a257336001600160a01b03166066828154811061036d5761036d610996565b6000918252602090912001546001600160a01b03160361039057600192506103a2565b8061039a816109ac565b915050610348565b50816103ea5760405162461bcd60e51b8152602060048201526017602482015276191bd8dd5b595b9d08191bd95cc81b9bdd08195e1a5cdd604a1b604482015260640161021e565b33600081815260656020526040908190205490517f4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a1899161042f918a918a918a90610a20565b60405180910390a250503360009081526065602052604090204390555060019392505050565b6066546000908190815b818110156104b957336001600160a01b03166066828154811061048457610484610996565b6000918252602090912001546001600160a01b0316036104a757600192506104b9565b806104b1816109ac565b91505061045f565b5081156105085760405162461bcd60e51b815260206004820152601760248201527f646f63756d656e7420616c726561647920657869737473000000000000000000604482015260640161021e565b336001600160a01b03167f4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a1896000886000886040516105499493929190610a20565b60405180910390a2336001600160a01b03167f4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a1896001876000886040516105929493929190610a20565b60405180910390a25050604080518082018252438152600060208083018281523380845260659092529382209251835592516001928301805460ff191660ff90921691909117905560668054808401825591527f46501879b8ca8525e8c2fd519e2fbfcfa2ebea26501294aa02cbfcfb12e943540180546001600160a01b031916909217909155949350505050565b610629610729565b6106336000610783565b565b6066546000908190815b818110156102b357846001600160a01b03166066828154811061066457610664610996565b6000918252602090912001546001600160a01b03160361069e576001600160a01b03851660009081526065602052604090205492506102b3565b806106a8816109ac565b91505061063f565b6106b8610729565b6001600160a01b03811661071d5760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b606482015260840161021e565b61072681610783565b50565b6033546001600160a01b031633146106335760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015260640161021e565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b6000602082840312156107e757600080fd5b81358060000b81146107f857600080fd5b9392505050565b60006020828403121561081157600080fd5b81356001600160a01b03811681146107f857600080fd5b634e487b7160e01b600052604160045260246000fd5b600082601f83011261084f57600080fd5b813567ffffffffffffffff8082111561086a5761086a610828565b604051601f8301601f19908116603f0116810190828211818310171561089257610892610828565b816040528381528660208588010111156108ab57600080fd5b836020870160208301376000602085830101528094505050505092915050565b6000806000606084860312156108e057600080fd5b833560ff811681146108f157600080fd5b9250602084013567ffffffffffffffff8082111561090e57600080fd5b61091a8783880161083e565b9350604086013591508082111561093057600080fd5b5061093d8682870161083e565b9150509250925092565b60008060006060848603121561095c57600080fd5b833567ffffffffffffffff8082111561097457600080fd5b6109808783880161083e565b9450602086013591508082111561090e57600080fd5b634e487b7160e01b600052603260045260246000fd5b6000600182016109cc57634e487b7160e01b600052601160045260246000fd5b5060010190565b6000815180845260005b818110156109f9576020818501810151868301820152016109dd565b81811115610a0b576000602083870101525b50601f01601f19169290920160200192915050565b60ff85168152608060208201526000610a3c60808301866109d3565b8460408401528281036060840152610a5481856109d3565b97965050505050505056fea26469706673582212204b988c689731844db202ee004ba947558aaab8bef54585dc57cf40e41da4c9a964736f6c634300080d0033",
 }
 
 // DidABI is the input ABI used to generate the binding from.
@@ -346,25 +346,25 @@ func (_Did *DidTransactorSession) ChangeStatus(status int8) (*types.Transaction,
 	return _Did.Contract.ChangeStatus(&_Did.TransactOpts, status)
 }
 
-// CreatePid is a paid mutator transaction binding the contract method 0x96d6b634.
+// CreateDid is a paid mutator transaction binding the contract method 0x520aeecd.
 //
-// Solidity: function createPid(string createTime, string publicKey, string updateTime) returns(bool success)
-func (_Did *DidTransactor) CreatePid(opts *bind.TransactOpts, createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
-	return _Did.contract.Transact(opts, "createPid", createTime, publicKey, updateTime)
+// Solidity: function createDid(string createTime, string publicKey, string updateTime) returns(bool success)
+func (_Did *DidTransactor) CreateDid(opts *bind.TransactOpts, createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
+	return _Did.contract.Transact(opts, "createDid", createTime, publicKey, updateTime)
 }
 
-// CreatePid is a paid mutator transaction binding the contract method 0x96d6b634.
+// CreateDid is a paid mutator transaction binding the contract method 0x520aeecd.
 //
-// Solidity: function createPid(string createTime, string publicKey, string updateTime) returns(bool success)
-func (_Did *DidSession) CreatePid(createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
-	return _Did.Contract.CreatePid(&_Did.TransactOpts, createTime, publicKey, updateTime)
+// Solidity: function createDid(string createTime, string publicKey, string updateTime) returns(bool success)
+func (_Did *DidSession) CreateDid(createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
+	return _Did.Contract.CreateDid(&_Did.TransactOpts, createTime, publicKey, updateTime)
 }
 
-// CreatePid is a paid mutator transaction binding the contract method 0x96d6b634.
+// CreateDid is a paid mutator transaction binding the contract method 0x520aeecd.
 //
-// Solidity: function createPid(string createTime, string publicKey, string updateTime) returns(bool success)
-func (_Did *DidTransactorSession) CreatePid(createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
-	return _Did.Contract.CreatePid(&_Did.TransactOpts, createTime, publicKey, updateTime)
+// Solidity: function createDid(string createTime, string publicKey, string updateTime) returns(bool success)
+func (_Did *DidTransactorSession) CreateDid(createTime string, publicKey string, updateTime string) (*types.Transaction, error) {
+	return _Did.Contract.CreateDid(&_Did.TransactOpts, createTime, publicKey, updateTime)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -428,6 +428,154 @@ func (_Did *DidSession) TransferOwnership(newOwner common.Address) (*types.Trans
 // Solidity: function transferOwnership(address newOwner) returns()
 func (_Did *DidTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
 	return _Did.Contract.TransferOwnership(&_Did.TransactOpts, newOwner)
+}
+
+// DidDIDAttributeChangeIterator is returned from FilterDIDAttributeChange and is used to iterate over the raw logs and unpacked data for DIDAttributeChange events raised by the Did contract.
+type DidDIDAttributeChangeIterator struct {
+	Event *DidDIDAttributeChange // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *DidDIDAttributeChangeIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(DidDIDAttributeChange)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(DidDIDAttributeChange)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *DidDIDAttributeChangeIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *DidDIDAttributeChangeIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// DidDIDAttributeChange represents a DIDAttributeChange event raised by the Did contract.
+type DidDIDAttributeChange struct {
+	Identity    common.Address
+	FieldKey    uint8
+	FieldValue  string
+	BlockNumber *big.Int
+	UpdateTime  string
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterDIDAttributeChange is a free log retrieval operation binding the contract event 0x4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a189.
+//
+// Solidity: event DIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
+func (_Did *DidFilterer) FilterDIDAttributeChange(opts *bind.FilterOpts, identity []common.Address) (*DidDIDAttributeChangeIterator, error) {
+
+	var identityRule []interface{}
+	for _, identityItem := range identity {
+		identityRule = append(identityRule, identityItem)
+	}
+
+	logs, sub, err := _Did.contract.FilterLogs(opts, "DIDAttributeChange", identityRule)
+	if err != nil {
+		return nil, err
+	}
+	return &DidDIDAttributeChangeIterator{contract: _Did.contract, event: "DIDAttributeChange", logs: logs, sub: sub}, nil
+}
+
+// WatchDIDAttributeChange is a free log subscription operation binding the contract event 0x4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a189.
+//
+// Solidity: event DIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
+func (_Did *DidFilterer) WatchDIDAttributeChange(opts *bind.WatchOpts, sink chan<- *DidDIDAttributeChange, identity []common.Address) (event.Subscription, error) {
+
+	var identityRule []interface{}
+	for _, identityItem := range identity {
+		identityRule = append(identityRule, identityItem)
+	}
+
+	logs, sub, err := _Did.contract.WatchLogs(opts, "DIDAttributeChange", identityRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(DidDIDAttributeChange)
+				if err := _Did.contract.UnpackLog(event, "DIDAttributeChange", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDIDAttributeChange is a log parse operation binding the contract event 0x4bdf02929c49ebabe416224f8f1ec84797a40af54baab393a859cdc00805a189.
+//
+// Solidity: event DIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
+func (_Did *DidFilterer) ParseDIDAttributeChange(log types.Log) (*DidDIDAttributeChange, error) {
+	event := new(DidDIDAttributeChange)
+	if err := _Did.contract.UnpackLog(event, "DIDAttributeChange", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // DidInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the Did contract.
@@ -711,154 +859,6 @@ func (_Did *DidFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink ch
 func (_Did *DidFilterer) ParseOwnershipTransferred(log types.Log) (*DidOwnershipTransferred, error) {
 	event := new(DidOwnershipTransferred)
 	if err := _Did.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// DidPIDAttributeChangeIterator is returned from FilterPIDAttributeChange and is used to iterate over the raw logs and unpacked data for PIDAttributeChange events raised by the Did contract.
-type DidPIDAttributeChangeIterator struct {
-	Event *DidPIDAttributeChange // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *DidPIDAttributeChangeIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(DidPIDAttributeChange)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(DidPIDAttributeChange)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *DidPIDAttributeChangeIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *DidPIDAttributeChangeIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// DidPIDAttributeChange represents a PIDAttributeChange event raised by the Did contract.
-type DidPIDAttributeChange struct {
-	Identity    common.Address
-	FieldKey    uint8
-	FieldValue  string
-	BlockNumber *big.Int
-	UpdateTime  string
-	Raw         types.Log // Blockchain specific contextual infos
-}
-
-// FilterPIDAttributeChange is a free log retrieval operation binding the contract event 0x78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd.
-//
-// Solidity: event PIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
-func (_Did *DidFilterer) FilterPIDAttributeChange(opts *bind.FilterOpts, identity []common.Address) (*DidPIDAttributeChangeIterator, error) {
-
-	var identityRule []interface{}
-	for _, identityItem := range identity {
-		identityRule = append(identityRule, identityItem)
-	}
-
-	logs, sub, err := _Did.contract.FilterLogs(opts, "PIDAttributeChange", identityRule)
-	if err != nil {
-		return nil, err
-	}
-	return &DidPIDAttributeChangeIterator{contract: _Did.contract, event: "PIDAttributeChange", logs: logs, sub: sub}, nil
-}
-
-// WatchPIDAttributeChange is a free log subscription operation binding the contract event 0x78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd.
-//
-// Solidity: event PIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
-func (_Did *DidFilterer) WatchPIDAttributeChange(opts *bind.WatchOpts, sink chan<- *DidPIDAttributeChange, identity []common.Address) (event.Subscription, error) {
-
-	var identityRule []interface{}
-	for _, identityItem := range identity {
-		identityRule = append(identityRule, identityItem)
-	}
-
-	logs, sub, err := _Did.contract.WatchLogs(opts, "PIDAttributeChange", identityRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(DidPIDAttributeChange)
-				if err := _Did.contract.UnpackLog(event, "PIDAttributeChange", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParsePIDAttributeChange is a log parse operation binding the contract event 0x78acd80016b76ce5977296fbdd38a0aac1a3ff9531865bd76469cd4cb590dadd.
-//
-// Solidity: event PIDAttributeChange(address indexed identity, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
-func (_Did *DidFilterer) ParsePIDAttributeChange(log types.Log) (*DidPIDAttributeChange, error) {
-	event := new(DidPIDAttributeChange)
-	if err := _Did.contract.UnpackLog(event, "PIDAttributeChange", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

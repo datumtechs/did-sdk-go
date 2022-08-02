@@ -112,7 +112,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	}
 
 	// call contract CreateDid()
-	tx, err := s.didContractInstance.CreatePid(opts, createTime, publicKeyAsInput, updateTime)
+	tx, err := s.didContractInstance.CreateDid(opts, createTime, publicKeyAsInput, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call CreateDid(), PublicKey: %s", publicKeyAsInput)
 		response.Msg = "failed to call contract"
@@ -194,7 +194,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	for prevBlock.Uint64() >= 0 {
 		logs := s.ctx.GetLog(timeoutCtx, didContractAddress, prevBlock)
 		for _, eachLog := range logs {
-			event, err := s.didContractInstance.ParsePIDAttributeChange(*eachLog)
+			event, err := s.didContractInstance.ParseDIDAttributeChange(*eachLog)
 			if err != nil {
 				response.Msg = "failed to parse contract event"
 				return response
