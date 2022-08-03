@@ -39,7 +39,7 @@ func NewProposalService(ctx chainclient.Context) *ProposalService {
 	return m
 }
 
-func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
+/*func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
 	// init the result
 	response := new(Response[types.Authority])
 	response.CallMode = true
@@ -62,9 +62,9 @@ func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[type
 	response.Data = auth
 	return response
 
-}
+}*/
 
-/*func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
+func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
 	// init the result
 	response := new(Response[types.Authority])
 	response.CallMode = true
@@ -86,7 +86,7 @@ func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[type
 	response.Msg = "Did not found"
 	return response
 
-}*/
+}
 
 func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 	// init the result
