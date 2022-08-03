@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"github.com/datumtechs/did-sdk-go/common"
+	"github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/keys/vc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
@@ -67,12 +68,21 @@ func (c *Credential) GetRawCredentialMap() map[string]interface{} {
 }
 */
 
-func (c *Credential) GetRaw(disclosureMap map[string]int, seed uint64) string {
+/*func (c *Credential) GetRaw(disclosureMap map[string]int, seed uint64) string {
 	claimHash := c.ClaimData.GetHash(disclosureMap, seed)
 	credMap := c.ToMap()
 	delete(credMap, vckeys.PROOF)
 	credMap[vckeys.CLAIM_DATA] = claimHash
 	return common.MapToJson(credMap)
+}*/
+
+// When seed=0, a random number will be generated as seed.
+func (c *Credential) GetDigest(disclosureMap map[string]int, seed uint64) []byte {
+	claimHash := c.ClaimData.GetHash(nil, c.ClaimData.GetSeed())
+	credMap := c.ToMap()
+	delete(credMap, vckeys.PROOF)
+	credMap[vckeys.CLAIM_DATA] = claimHash
+	return crypto.SHA3(common.MapToJson(credMap))
 }
 
 // todo: convert to map by reflect

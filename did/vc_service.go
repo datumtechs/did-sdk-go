@@ -173,16 +173,16 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 	//credentialWrapper := new(vc.CredentialWrapper)
 	credential := generateCredential(req)
 
-	rawData := credential.GetRaw(nil, 0)
+	digest := credential.GetDigest(nil, 0)
 
 	//fmt.Printf("sign rawData: %s\n", rawData)
-	_, sig := crypto.SignSecp256k1(rawData, req.PrivateKey)
+	sig := crypto.SignSecp256k1(digest, req.PrivateKey)
 
 	//生成proof
 	proofMap := make(types.Proof)
 	proofMap[proofkeys.CREATED] = credential.IssuanceDate
 	proofMap[proofkeys.TYPE] = algorithm.ALGO_SECP256K1
-	proofMap[proofkeys.SIGNATURE] = sig
+	proofMap[proofkeys.SIGNATURE] = hex.EncodeToString(sig)
 	proofMap[proofkeys.VERIFICATIONMETHOD] = req.PublicKeyId
 	credential.Proof = proofMap
 
@@ -388,8 +388,8 @@ func (s *VcService) VerifyVC(credential *types.Credential) bool {
 func (s *VcService) VerifyVCWithPublicKey(credential *types.Credential, publicKey *ecdsa.PublicKey) bool {
 	sig := credential.Proof[proofkeys.SIGNATURE]
 
-	rawData := credential.GetRaw(nil, credential.ClaimData.GetSeed())
+	digest := credential.GetDigest(nil, credential.ClaimData.GetSeed())
 	//fmt.Printf("verify rawData: %s\n", rawData)
 
-	return crypto.VerifySecp256k1Signature(rawData, sig, publicKey)
+	return crypto.VerifySecp256k1Signature(digest, sig, publicKey)
 }
