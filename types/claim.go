@@ -42,22 +42,11 @@ func (c Claim) GetSeed() uint64 {
 }
 
 //
-func (c Claim) GetHash(disclosures map[string]int, seed uint64) string {
+func (c Claim) GetHash(seed uint64) string {
 	newClaim := common.Clone(c)
 	//遍历时只需要有效字段，因此需要删除可能存在的key
 	delete(newClaim, claimkeys.SEED)
 	delete(newClaim, claimkeys.ROOT_HASH)
-
-	if disclosures == nil {
-		disclosures = make(map[string]int)
-	}
-	if len(disclosures) == 0 {
-		//每个字段都需要披露
-		for key, _ := range newClaim {
-			disclosures[key] = int(DISCLOSED)
-		}
-	}
-
 	//对claim进行加盐，并计算ClaimRootHash
 	if seed == 0 {
 		seed = rand.Uint64()
@@ -100,6 +89,7 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 				newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
 				claimMapSalt[key] = newValue
 				builder.WriteString(crypto.SHA3Hex(newValue))
+				builder.WriteString(" ")
 			}
 		} else {
 			//替换value= json(value)+salt
@@ -110,6 +100,7 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 			//fmt.Printf("claim key:%s newValue:=%s\n", key, newValue)
 			claimMapSalt[key] = newValue
 			builder.WriteString(crypto.SHA3Hex(newValue))
+			builder.WriteString(" ")
 		}
 	}
 }
@@ -122,6 +113,86 @@ func GenerateClaimSaltForList(claimListSalt []interface{}, seed []byte, builder 
 			isMapOrList := GenerateClaimSaltForList(l, seed, builder)
 			if !isMapOrList {
 				return isMapOrList
+			}
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+func SplitForMap(originalClaim, disclosureMap, undisclosed Claim, seed []byte) {
+	var disclosedKeys []string
+	for key := range disclosureMap {
+		disclosedKeys = append(disclosedKeys, key)
+	}
+
+	//排序keys
+	sort.Strings(disclosedKeys)
+	for _, disclosedKey := range disclosedKeys {
+		disclosedValue := disclosureMap[disclosedKey]
+		originalValue := originalClaim[disclosedKey]
+
+		if disclosureMapNextLevel, ok := disclosedValue.(map[string]interface{}); ok {
+			if originalClaimNextLevel, ok := originalValue.(map[string]interface{}); ok {
+				SplitForMap(originalClaimNextLevel, disclosureMapNextLevel, undisclosed, seed)
+			} else {
+				//todo: handle error:
+			}
+		} else if disclosureMapNextLevel, ok := disclosedValue.([]interface{}); ok {
+			if originalClaimNextLevel, ok := originalValue.([]interface{}); ok {
+				isMapOrList := SplitForList(originalClaimNextLevel, disclosureMapNextLevel, undisclosed, seed)
+				if !isMapOrList {
+					//替换value= json(value)+salt
+					originalValueJson, _ := json.Marshal(originalValue)
+					seed = common.GetHash(seed)
+					newValue := string(originalValueJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
+					//fmt.Printf("claim key:%s newValue:=%s\n", key, newValue)
+
+					disclosedValueJson, _ := json.Marshal(disclosedValue)
+					if string(disclosedValueJson) == "0" { //不披露
+						delete(originalClaim, disclosedKey)
+						undisclosed[disclosedKey] = crypto.SHA3Hex(newValue)
+					} else {
+						delete(undisclosed, disclosedKey)
+					}
+				}
+			} else {
+				//todo: handle error:
+			}
+
+		} else {
+			//替换value= json(value)+salt
+			originalValueJson, _ := json.Marshal(originalValue)
+			seed = common.GetHash(seed)
+			newValue := string(originalValueJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
+			//fmt.Printf("claim key:%s newValue:=%s\n", key, newValue)
+
+			disclosedValueJson, _ := json.Marshal(disclosedValue)
+			if string(disclosedValueJson) == "0" { //不披露
+				delete(originalClaim, disclosedKey)
+				undisclosed[disclosedKey] = crypto.SHA3Hex(newValue)
+			} else {
+				delete(undisclosed, disclosedKey)
+			}
+		}
+	}
+
+}
+
+func SplitForList(originalClaim []interface{}, disclosedClaim []interface{}, undisclosed Claim, seed []byte) bool {
+	for idx, v := range disclosedClaim {
+		if m, ok := v.(map[string]interface{}); ok {
+			if original, ok := (originalClaim[idx]).(map[string]interface{}); ok {
+				SplitForMap(original, m, undisclosed, seed)
+			} else {
+				//todo: handle error:
+			}
+		} else if l, ok := v.([]interface{}); ok {
+			if original, ok := (originalClaim[idx]).([]interface{}); ok {
+				SplitForList(original, l, undisclosed, seed)
+			} else {
+				//todo: handle error:
 			}
 		} else {
 			return false

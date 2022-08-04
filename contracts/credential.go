@@ -30,8 +30,8 @@ var (
 
 // CredentialMetaData contains all meta data concerning the Credential contract.
 var CredentialMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"name\":\"CredentialAttributeChange\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"signer\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"signatureData\",\"type\":\"string\"}],\"name\":\"createCredential\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"}],\"name\":\"getLatestBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"voteAddress\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"}],\"name\":\"isHashExist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Bin: "0x608060405234801561001057600080fd5b50610b57806100206000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c8063abf66aed1161005b578063abf66aed146100cf578063bfae4302146100e2578063c4d66de814610103578063f2fde38b1461011657600080fd5b8063715018a6146100825780638a2d099c1461008c5780638da5cb5b146100b4575b600080fd5b61008a610129565b005b61009f61009a366004610807565b610194565b60405190151581526020015b60405180910390f35b6033546040516001600160a01b0390911681526020016100ab565b61009f6100dd3660046108d7565b6101ee565b6100f56100f0366004610807565b6103b8565b6040519081526020016100ab565b61008a610111366004610959565b61042f565b61008a610124366004610959565b610504565b6033546001600160a01b031633146101885760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064015b60405180910390fd5b61019260006105cf565b565b6066546000908190815b818110156101e55784606682815481106101ba576101ba61097d565b9060005260206000200154036101d357600192506101e5565b806101dd81610993565b91505061019e565b50909392505050565b6067546000908190610208906001600160a01b0316610621565b606754909150600090610223906001600160a01b0316610719565b8251909150600090815b8181101561028257336001600160a01b03168582815181106102515761025161097d565b60200260200101516001600160a01b0316036102705760019250610282565b8061027a81610993565b91505061022d565b5081806102975750336001600160a01b038416145b6102d85760405162461bcd60e51b815260206004820152601260248201527134b73b30b634b21036b9b39739b2b73232b960711b604482015260640161017f565b7fad1f4fc02828882c8dc0931fe80a0ffbe0bf083316996ccf319e8b4200b9b0cd88600089600060405161030f94939291906109ea565b60405180910390a17fad1f4fc02828882c8dc0931fe80a0ffbe0bf083316996ccf319e8b4200b9b0cd88600188600060405161034e94939291906109ea565b60405180910390a15050604080516020808201835243825260008981526065909152918220905190556066805460018181018355919092527f46501879b8ca8525e8c2fd519e2fbfcfa2ebea26501294aa02cbfcfb12e94354909101879055925050509392505050565b6066546000908190815b818110156104095784606682815481106103de576103de61097d565b9060005260206000200154036103f75760019250610409565b8061040181610993565b9150506103c2565b5081156104255750505060009081526065602052604090205490565b5060009392505050565b600054610100900460ff1661044a5760005460ff161561044e565b303b155b6104b15760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b606482015260840161017f565b600054610100900460ff161580156104d3576000805461ffff19166101011790555b606780546001600160a01b0319166001600160a01b0384161790558015610500576000805461ff00191690555b5050565b6033546001600160a01b0316331461055e5760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015260640161017f565b6001600160a01b0381166105c35760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b606482015260840161017f565b6105cc816105cf565b50565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b60408051600481526024810182526020810180516001600160e01b03166311ddc2b160e31b179052905160609160009182916001600160a01b038616916106689190610a36565b600060405180830381855afa9150503d80600081146106a3576040519150601f19603f3d011682016040523d82523d6000602084013e6106a8565b606091505b5091509150816106fa5760405162461bcd60e51b815260206004820152601b60248201527f73746174696363616c6c20616c6c6f77616e6365206661696c65640000000000604482015260640161017f565b6000818060200190518101906107109190610a52565b95945050505050565b60408051600481526024810182526020810180516001600160e01b0316636e9960c360e01b1790529051600091829182916001600160a01b0386169161075f9190610a36565b600060405180830381855afa9150503d806000811461079a576040519150601f19603f3d011682016040523d82523d6000602084013e61079f565b606091505b5091509150816107f15760405162461bcd60e51b815260206004820152601b60248201527f73746174696363616c6c20616c6c6f77616e6365206661696c65640000000000604482015260640161017f565b6000818060200190518101906107109190610b04565b60006020828403121561081957600080fd5b5035919050565b634e487b7160e01b600052604160045260246000fd5b604051601f8201601f1916810167ffffffffffffffff8111828210171561085f5761085f610820565b604052919050565b600082601f83011261087857600080fd5b813567ffffffffffffffff81111561089257610892610820565b6108a5601f8201601f1916602001610836565b8181528460208386010111156108ba57600080fd5b816020850160208301376000918101602001919091529392505050565b6000806000606084860312156108ec57600080fd5b83359250602084013567ffffffffffffffff8082111561090b57600080fd5b61091787838801610867565b9350604086013591508082111561092d57600080fd5b5061093a86828701610867565b9150509250925092565b6001600160a01b03811681146105cc57600080fd5b60006020828403121561096b57600080fd5b813561097681610944565b9392505050565b634e487b7160e01b600052603260045260246000fd5b6000600182016109b357634e487b7160e01b600052601160045260246000fd5b5060010190565b60005b838110156109d55781810151838201526020016109bd565b838111156109e4576000848401525b50505050565b84815260ff841660208201526080604082015260008351806080840152610a188160a08501602088016109ba565b606083019390935250601f91909101601f19160160a0019392505050565b60008251610a488184602087016109ba565b9190910192915050565b60006020808385031215610a6557600080fd5b825167ffffffffffffffff80821115610a7d57600080fd5b818501915085601f830112610a9157600080fd5b815181811115610aa357610aa3610820565b8060051b9150610ab4848301610836565b8181529183018401918481019088841115610ace57600080fd5b938501935b83851015610af85784519250610ae883610944565b8282529385019390850190610ad3565b98975050505050505050565b600060208284031215610b1657600080fd5b81516109768161094456fea2646970667358221220a7dce3ef873d12719777efae6084d5ad41fca0cdd78d98212fbd3f6b86a7dd8f64736f6c634300080d0033",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"fieldKey\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"fieldValue\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"CredentialAttributeChange\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"},{\"internalType\":\"int8\",\"name\":\"status\",\"type\":\"int8\"}],\"name\":\"changeStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"signer\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"signatureData\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"updateTime\",\"type\":\"string\"}],\"name\":\"createCredential\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"}],\"name\":\"getLatestBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"}],\"name\":\"getStatus\",\"outputs\":[{\"internalType\":\"int8\",\"name\":\"\",\"type\":\"int8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"voteAddress\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"credentialHash\",\"type\":\"bytes32\"}],\"name\":\"isHashExist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b50610e7f806100206000396000f3fe608060405234801561001057600080fd5b50600436106100935760003560e01c80638da5cb5b116100665780638da5cb5b14610103578063b2de79fd1461011e578063bfae430214610131578063c4d66de814610152578063f2fde38b1461016557600080fd5b80633ac87a5f146100985780635de28ae0146100ad578063715018a6146100d85780638a2d099c146100e0575b600080fd5b6100ab6100a6366004610947565b610178565b005b6100c06100bb36600461097d565b6102d3565b60405160009190910b81526020015b60405180910390f35b6100ab610348565b6100f36100ee36600461097d565b61035c565b60405190151581526020016100cf565b6033546040516001600160a01b0390911681526020016100cf565b6100f361012c366004610a5b565b6103ad565b61014461013f36600461097d565b61058b565b6040519081526020016100cf565b6100ab610160366004610b02565b610602565b6100ab610173366004610b02565b610727565b60665460009081805b828110156101cb57856066828154811061019d5761019d610b26565b9060005260206000200154036101b957600193508091506101cb565b806101c381610b3c565b915050610181565b508261021e5760405162461bcd60e51b815260206004820152601760248201527f646f63756d656e7420646f6573206e6f7420657869737400000000000000000060448201526064015b60405180910390fd5b6000858152606560205260409020600101546001600160a01b031633146102a05760405162461bcd60e51b815260206004820152603060248201527f4f6e6c7920746865206973737565722063616e206368616e676520746865206360448201526f726564656e7469616c2073746174757360801b6064820152608401610215565b505050600091825260656020526040909120600101805460ff909216600160a01b0260ff60a01b19909216919091179055565b60665460009060001990825b8181101561033f5784606682815481106102fb576102fb610b26565b90600052602060002001540361032d57600085815260656020526040812060010154600160a01b9004900b925061033f565b8061033781610b3c565b9150506102df565b50909392505050565b6103506107a0565b61035a60006107fa565b565b6066546000908190815b8181101561033f57846066828154811061038257610382610b26565b90600052602060002001540361039b576001925061033f565b806103a581610b3c565b915050610366565b60675460009081906103c7906001600160a01b031661084c565b8051909150600090815b8181101561042657336001600160a01b03168482815181106103f5576103f5610b26565b60200260200101516001600160a01b0316036104145760019250610426565b8061041e81610b3c565b9150506103d1565b50816104695760405162461bcd60e51b815260206004820152601260248201527134b73b30b634b21036b9b39739b2b73232b960711b6044820152606401610215565b877fbda6aff1adc27399496f953e769dd5eaea248b63011f5b641aae2d9531bbd3eb6000896000896040516104a19493929190610bbf565b60405180910390a2877fbda6aff1adc27399496f953e769dd5eaea248b63011f5b641aae2d9531bbd3eb6001886000896040516104e19493929190610bbf565b60405180910390a250506040805160608101825243815233602080830191825260008385018181528b8252606590925293842092518355905160019283018054925160ff16600160a01b026001600160a81b03199093166001600160a01b03929092169190911791909117905560668054808301825592527f46501879b8ca8525e8c2fd519e2fbfcfa2ebea26501294aa02cbfcfb12e94354909101879055915050949350505050565b6066546000908190815b818110156105dc5784606682815481106105b1576105b1610b26565b9060005260206000200154036105ca57600192506105dc565b806105d481610b3c565b915050610595565b5081156105f85750505060009081526065602052604090205490565b5060009392505050565b600054610100900460ff16158080156106225750600054600160ff909116105b8061063c5750303b15801561063c575060005460ff166001145b61069f5760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b6064820152608401610215565b6000805460ff1916600117905580156106c2576000805461ff0019166101001790555b606780546001600160a01b0319166001600160a01b0384161790558015610723576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b61072f6107a0565b6001600160a01b0381166107945760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b6064820152608401610215565b61079d816107fa565b50565b6033546001600160a01b0316331461035a5760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e65726044820152606401610215565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b60408051600481526024810182526020810180516001600160e01b03166311ddc2b160e31b179052905160609160009182916001600160a01b038616916108939190610bfe565b600060405180830381855afa9150503d80600081146108ce576040519150601f19603f3d011682016040523d82523d6000602084013e6108d3565b606091505b5091509150816109255760405162461bcd60e51b815260206004820152601b60248201527f73746174696363616c6c20616c6c6f77616e6365206661696c656400000000006044820152606401610215565b60008180602001905181019061093b9190610d60565b50909695505050505050565b6000806040838503121561095a57600080fd5b8235915060208301358060000b811461097257600080fd5b809150509250929050565b60006020828403121561098f57600080fd5b5035919050565b634e487b7160e01b600052604160045260246000fd5b604051601f8201601f1916810167ffffffffffffffff811182821017156109d5576109d5610996565b604052919050565b600067ffffffffffffffff8211156109f7576109f7610996565b50601f01601f191660200190565b600082601f830112610a1657600080fd5b8135610a29610a24826109dd565b6109ac565b818152846020838601011115610a3e57600080fd5b816020850160208301376000918101602001919091529392505050565b60008060008060808587031215610a7157600080fd5b84359350602085013567ffffffffffffffff80821115610a9057600080fd5b610a9c88838901610a05565b94506040870135915080821115610ab257600080fd5b610abe88838901610a05565b93506060870135915080821115610ad457600080fd5b50610ae187828801610a05565b91505092959194509250565b6001600160a01b038116811461079d57600080fd5b600060208284031215610b1457600080fd5b8135610b1f81610aed565b9392505050565b634e487b7160e01b600052603260045260246000fd5b600060018201610b5c57634e487b7160e01b600052601160045260246000fd5b5060010190565b60005b83811015610b7e578181015183820152602001610b66565b83811115610b8d576000848401525b50505050565b60008151808452610bab816020860160208601610b63565b601f01601f19169290920160200192915050565b60ff85168152608060208201526000610bdb6080830186610b93565b8460408401528281036060840152610bf38185610b93565b979650505050505050565b60008251610c10818460208701610b63565b9190910192915050565b600067ffffffffffffffff821115610c3457610c34610996565b5060051b60200190565b600082601f830112610c4f57600080fd5b81516020610c5f610a2483610c1a565b82815260059290921b84018101918181019086841115610c7e57600080fd5b8286015b84811015610cfa57805167ffffffffffffffff811115610ca25760008081fd5b8701603f81018913610cb45760008081fd5b848101516040610cc6610a24836109dd565b8281528b82848601011115610cdb5760008081fd5b610cea83898301848701610b63565b8652505050918301918301610c82565b509695505050505050565b600082601f830112610d1657600080fd5b81516020610d26610a2483610c1a565b82815260059290921b84018101918181019086841115610d4557600080fd5b8286015b84811015610cfa5780518352918301918301610d49565b600080600060608486031215610d7557600080fd5b835167ffffffffffffffff80821115610d8d57600080fd5b818601915086601f830112610da157600080fd5b81516020610db1610a2483610c1a565b82815260059290921b8401810191818101908a841115610dd057600080fd5b948201945b83861015610df7578551610de881610aed565b82529482019490820190610dd5565b91890151919750909350505080821115610e1057600080fd5b610e1c87838801610c3e565b93506040860151915080821115610e3257600080fd5b50610e3f86828701610d05565b915050925092509256fea264697066735822122007b9840a897a6878f3df82474542cb7541b0a9d9c274e74b2396c2a8716a63b964736f6c634300080d0033",
 }
 
 // CredentialABI is the input ABI used to generate the binding from.
@@ -232,6 +232,37 @@ func (_Credential *CredentialCallerSession) GetLatestBlock(credentialHash [32]by
 	return _Credential.Contract.GetLatestBlock(&_Credential.CallOpts, credentialHash)
 }
 
+// GetStatus is a free data retrieval call binding the contract method 0x5de28ae0.
+//
+// Solidity: function getStatus(bytes32 credentialHash) view returns(int8)
+func (_Credential *CredentialCaller) GetStatus(opts *bind.CallOpts, credentialHash [32]byte) (int8, error) {
+	var out []interface{}
+	err := _Credential.contract.Call(opts, &out, "getStatus", credentialHash)
+
+	if err != nil {
+		return *new(int8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(int8)).(*int8)
+
+	return out0, err
+
+}
+
+// GetStatus is a free data retrieval call binding the contract method 0x5de28ae0.
+//
+// Solidity: function getStatus(bytes32 credentialHash) view returns(int8)
+func (_Credential *CredentialSession) GetStatus(credentialHash [32]byte) (int8, error) {
+	return _Credential.Contract.GetStatus(&_Credential.CallOpts, credentialHash)
+}
+
+// GetStatus is a free data retrieval call binding the contract method 0x5de28ae0.
+//
+// Solidity: function getStatus(bytes32 credentialHash) view returns(int8)
+func (_Credential *CredentialCallerSession) GetStatus(credentialHash [32]byte) (int8, error) {
+	return _Credential.Contract.GetStatus(&_Credential.CallOpts, credentialHash)
+}
+
 // IsHashExist is a free data retrieval call binding the contract method 0x8a2d099c.
 //
 // Solidity: function isHashExist(bytes32 credentialHash) view returns(bool success)
@@ -294,25 +325,46 @@ func (_Credential *CredentialCallerSession) Owner() (common.Address, error) {
 	return _Credential.Contract.Owner(&_Credential.CallOpts)
 }
 
-// CreateCredential is a paid mutator transaction binding the contract method 0xabf66aed.
+// ChangeStatus is a paid mutator transaction binding the contract method 0x3ac87a5f.
 //
-// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData) returns(bool success)
-func (_Credential *CredentialTransactor) CreateCredential(opts *bind.TransactOpts, credentialHash [32]byte, signer string, signatureData string) (*types.Transaction, error) {
-	return _Credential.contract.Transact(opts, "createCredential", credentialHash, signer, signatureData)
+// Solidity: function changeStatus(bytes32 credentialHash, int8 status) returns()
+func (_Credential *CredentialTransactor) ChangeStatus(opts *bind.TransactOpts, credentialHash [32]byte, status int8) (*types.Transaction, error) {
+	return _Credential.contract.Transact(opts, "changeStatus", credentialHash, status)
 }
 
-// CreateCredential is a paid mutator transaction binding the contract method 0xabf66aed.
+// ChangeStatus is a paid mutator transaction binding the contract method 0x3ac87a5f.
 //
-// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData) returns(bool success)
-func (_Credential *CredentialSession) CreateCredential(credentialHash [32]byte, signer string, signatureData string) (*types.Transaction, error) {
-	return _Credential.Contract.CreateCredential(&_Credential.TransactOpts, credentialHash, signer, signatureData)
+// Solidity: function changeStatus(bytes32 credentialHash, int8 status) returns()
+func (_Credential *CredentialSession) ChangeStatus(credentialHash [32]byte, status int8) (*types.Transaction, error) {
+	return _Credential.Contract.ChangeStatus(&_Credential.TransactOpts, credentialHash, status)
 }
 
-// CreateCredential is a paid mutator transaction binding the contract method 0xabf66aed.
+// ChangeStatus is a paid mutator transaction binding the contract method 0x3ac87a5f.
 //
-// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData) returns(bool success)
-func (_Credential *CredentialTransactorSession) CreateCredential(credentialHash [32]byte, signer string, signatureData string) (*types.Transaction, error) {
-	return _Credential.Contract.CreateCredential(&_Credential.TransactOpts, credentialHash, signer, signatureData)
+// Solidity: function changeStatus(bytes32 credentialHash, int8 status) returns()
+func (_Credential *CredentialTransactorSession) ChangeStatus(credentialHash [32]byte, status int8) (*types.Transaction, error) {
+	return _Credential.Contract.ChangeStatus(&_Credential.TransactOpts, credentialHash, status)
+}
+
+// CreateCredential is a paid mutator transaction binding the contract method 0xb2de79fd.
+//
+// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData, string updateTime) returns(bool success)
+func (_Credential *CredentialTransactor) CreateCredential(opts *bind.TransactOpts, credentialHash [32]byte, signer string, signatureData string, updateTime string) (*types.Transaction, error) {
+	return _Credential.contract.Transact(opts, "createCredential", credentialHash, signer, signatureData, updateTime)
+}
+
+// CreateCredential is a paid mutator transaction binding the contract method 0xb2de79fd.
+//
+// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData, string updateTime) returns(bool success)
+func (_Credential *CredentialSession) CreateCredential(credentialHash [32]byte, signer string, signatureData string, updateTime string) (*types.Transaction, error) {
+	return _Credential.Contract.CreateCredential(&_Credential.TransactOpts, credentialHash, signer, signatureData, updateTime)
+}
+
+// CreateCredential is a paid mutator transaction binding the contract method 0xb2de79fd.
+//
+// Solidity: function createCredential(bytes32 credentialHash, string signer, string signatureData, string updateTime) returns(bool success)
+func (_Credential *CredentialTransactorSession) CreateCredential(credentialHash [32]byte, signer string, signatureData string, updateTime string) (*types.Transaction, error) {
+	return _Credential.Contract.CreateCredential(&_Credential.TransactOpts, credentialHash, signer, signatureData, updateTime)
 }
 
 // Initialize is a paid mutator transaction binding the contract method 0xc4d66de8.
@@ -451,27 +503,38 @@ type CredentialCredentialAttributeChange struct {
 	FieldKey       uint8
 	FieldValue     string
 	BlockNumber    *big.Int
+	UpdateTime     string
 	Raw            types.Log // Blockchain specific contextual infos
 }
 
-// FilterCredentialAttributeChange is a free log retrieval operation binding the contract event 0xad1f4fc02828882c8dc0931fe80a0ffbe0bf083316996ccf319e8b4200b9b0cd.
+// FilterCredentialAttributeChange is a free log retrieval operation binding the contract event 0xbda6aff1adc27399496f953e769dd5eaea248b63011f5b641aae2d9531bbd3eb.
 //
-// Solidity: event CredentialAttributeChange(bytes32 credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber)
-func (_Credential *CredentialFilterer) FilterCredentialAttributeChange(opts *bind.FilterOpts) (*CredentialCredentialAttributeChangeIterator, error) {
+// Solidity: event CredentialAttributeChange(bytes32 indexed credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
+func (_Credential *CredentialFilterer) FilterCredentialAttributeChange(opts *bind.FilterOpts, credentialHash [][32]byte) (*CredentialCredentialAttributeChangeIterator, error) {
 
-	logs, sub, err := _Credential.contract.FilterLogs(opts, "CredentialAttributeChange")
+	var credentialHashRule []interface{}
+	for _, credentialHashItem := range credentialHash {
+		credentialHashRule = append(credentialHashRule, credentialHashItem)
+	}
+
+	logs, sub, err := _Credential.contract.FilterLogs(opts, "CredentialAttributeChange", credentialHashRule)
 	if err != nil {
 		return nil, err
 	}
 	return &CredentialCredentialAttributeChangeIterator{contract: _Credential.contract, event: "CredentialAttributeChange", logs: logs, sub: sub}, nil
 }
 
-// WatchCredentialAttributeChange is a free log subscription operation binding the contract event 0xad1f4fc02828882c8dc0931fe80a0ffbe0bf083316996ccf319e8b4200b9b0cd.
+// WatchCredentialAttributeChange is a free log subscription operation binding the contract event 0xbda6aff1adc27399496f953e769dd5eaea248b63011f5b641aae2d9531bbd3eb.
 //
-// Solidity: event CredentialAttributeChange(bytes32 credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber)
-func (_Credential *CredentialFilterer) WatchCredentialAttributeChange(opts *bind.WatchOpts, sink chan<- *CredentialCredentialAttributeChange) (event.Subscription, error) {
+// Solidity: event CredentialAttributeChange(bytes32 indexed credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
+func (_Credential *CredentialFilterer) WatchCredentialAttributeChange(opts *bind.WatchOpts, sink chan<- *CredentialCredentialAttributeChange, credentialHash [][32]byte) (event.Subscription, error) {
 
-	logs, sub, err := _Credential.contract.WatchLogs(opts, "CredentialAttributeChange")
+	var credentialHashRule []interface{}
+	for _, credentialHashItem := range credentialHash {
+		credentialHashRule = append(credentialHashRule, credentialHashItem)
+	}
+
+	logs, sub, err := _Credential.contract.WatchLogs(opts, "CredentialAttributeChange", credentialHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -503,12 +566,146 @@ func (_Credential *CredentialFilterer) WatchCredentialAttributeChange(opts *bind
 	}), nil
 }
 
-// ParseCredentialAttributeChange is a log parse operation binding the contract event 0xad1f4fc02828882c8dc0931fe80a0ffbe0bf083316996ccf319e8b4200b9b0cd.
+// ParseCredentialAttributeChange is a log parse operation binding the contract event 0xbda6aff1adc27399496f953e769dd5eaea248b63011f5b641aae2d9531bbd3eb.
 //
-// Solidity: event CredentialAttributeChange(bytes32 credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber)
+// Solidity: event CredentialAttributeChange(bytes32 indexed credentialHash, uint8 fieldKey, string fieldValue, uint256 blockNumber, string updateTime)
 func (_Credential *CredentialFilterer) ParseCredentialAttributeChange(log types.Log) (*CredentialCredentialAttributeChange, error) {
 	event := new(CredentialCredentialAttributeChange)
 	if err := _Credential.contract.UnpackLog(event, "CredentialAttributeChange", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// CredentialInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the Credential contract.
+type CredentialInitializedIterator struct {
+	Event *CredentialInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *CredentialInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(CredentialInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(CredentialInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *CredentialInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *CredentialInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// CredentialInitialized represents a Initialized event raised by the Credential contract.
+type CredentialInitialized struct {
+	Version uint8
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+//
+// Solidity: event Initialized(uint8 version)
+func (_Credential *CredentialFilterer) FilterInitialized(opts *bind.FilterOpts) (*CredentialInitializedIterator, error) {
+
+	logs, sub, err := _Credential.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &CredentialInitializedIterator{contract: _Credential.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+//
+// Solidity: event Initialized(uint8 version)
+func (_Credential *CredentialFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *CredentialInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _Credential.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(CredentialInitialized)
+				if err := _Credential.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498.
+//
+// Solidity: event Initialized(uint8 version)
+func (_Credential *CredentialFilterer) ParseInitialized(log types.Log) (*CredentialInitialized, error) {
+	event := new(CredentialInitialized)
+	if err := _Credential.contract.UnpackLog(event, "Initialized", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

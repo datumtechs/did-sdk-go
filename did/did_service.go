@@ -39,7 +39,7 @@ func NewDIDService(ctx chainclient.Context) *DIDService {
 /*type DocuementService interface {
 	CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string]
 	GetDocument(address ethcommon.Address) *Response[*doc.DidDocument]
-	AddDidPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, PublicKey string) *Response[bool]
+	SupplementDidPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, PublicKey string) *Response[bool]
 	HasPublicKey(address ethcommon.Address, pubKey string) *Response[bool]
 	GetDidPublicKey(address ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey]
 }

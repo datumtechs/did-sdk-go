@@ -119,7 +119,7 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 }
 
 type SubmitProposalReq struct {
-	// Required: The private key of the signed transaction
+	// Required: The private key to sign transaction
 	PrivateKey          *ecdsa.PrivateKey
 	ProposalType        uint8
 	ProposalUrl         string
@@ -203,7 +203,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 }
 
 type VoteProposalReq struct {
-	// Required: The private key of the signed transaction
+	// Required: The private key to sign transaction
 	PrivateKey *ecdsa.PrivateKey
 	ProposalId *big.Int
 }
@@ -274,7 +274,7 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 }
 
 type WithdrawProposalReq struct {
-	// Required: The private key of the signed transaction
+	// Required: The private key to sign transaction
 	PrivateKey *ecdsa.PrivateKey
 	ProposalId *big.Int
 }
@@ -346,7 +346,7 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 }
 
 type EffectProposalReq struct {
-	// Required: The private key of the signed transaction
+	// Required: The private key to sign transaction
 	PrivateKey *ecdsa.PrivateKey
 	ProposalId *big.Int
 }
@@ -364,7 +364,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	// prepare parameters for EffectProposal()
 	input, err := PackAbiInput(s.abi, "EffectProposal", req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to pack input data for EffectProposal(),proposalId:%d", req.ProposalId)
+		log.WithError(err).Errorf("EffectProposal: failed to pack input data,proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
@@ -377,7 +377,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for EffectProposal(),proposalId:%d", req.ProposalId)
+		log.WithError(err).Errorf("EffectProposal: failed to estimate gas,proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to estimate gas"
 		return response
@@ -390,12 +390,12 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	// call contract CreatePid()
 	tx, err := s.proposalContractInstance.EffectProposal(opts, req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call EffectProposal(), error: %+v", err)
+		log.WithError(err).Errorf("EffectProposal: failed to call contract, proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
-	log.Debugf("call EffectProposal() proposalId:%d txHash: %s", req.ProposalId, tx.Hash().Hex())
+	log.Debugf("CreateEvidence: call contract txHash: %s", tx.Hash().Hex())
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms

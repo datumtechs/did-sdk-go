@@ -207,7 +207,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 			case types.DOC_EVEN_PUBLICKEY:
 				didPublicKey := types.ParseToDidPublicKey(document.Id, event.FieldValue)
 				document.Updated = event.UpdateTime
-				document.AddDidPublicKey(didPublicKey)
+				document.SupplementDidPublicKey(didPublicKey)
 				prevBlock = event.BlockNumber
 			}
 		}

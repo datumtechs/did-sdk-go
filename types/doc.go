@@ -44,12 +44,6 @@ const (
 	DOC_DEACTIVATION
 )
 
-const (
-	DOC_EVENT_CREATE        uint8 = 0
-	DOC_EVEN_AUTHENTICATION uint8 = 1
-	DOC_EVEN_PUBLICKEY      uint8 = 2
-)
-
 func (s DocumentStatus) String() string {
 	switch s {
 	case DOC_ACTIVATION:
@@ -60,6 +54,12 @@ func (s DocumentStatus) String() string {
 		return "NA"
 	}
 }
+
+const (
+	DOC_EVENT_CREATE        uint8 = 0
+	DOC_EVEN_AUTHENTICATION uint8 = 1
+	DOC_EVEN_PUBLICKEY      uint8 = 2
+)
 
 const (
 	SEPARATOR_PIPELINE     = "|"
@@ -96,8 +96,8 @@ type DidDocument struct {
 	Status    string
 }
 
-// AddDidPublicKey returns true if public key exists.
-func (doc *DidDocument) AddDidPublicKey(pubKey *DidPublicKey) {
+// SupplementDidPublicKey supplement a DidPublicKey to current DidDocument if the public key does not exist.
+func (doc *DidDocument) SupplementDidPublicKey(pubKey *DidPublicKey) {
 	if doc.PublicKey == nil {
 		doc.PublicKey = []*DidPublicKey{pubKey}
 		return
@@ -120,7 +120,7 @@ func (doc *DidDocument) IsPublicKeyIdOrPublicKeyExist(publicKeyId string, public
 	return false
 }
 
-func (doc *DidDocument) AddService(services []*DidService) {
+func (doc *DidDocument) SupplementService(services []*DidService) {
 	if doc.Service == nil {
 		doc.Service = services
 		return

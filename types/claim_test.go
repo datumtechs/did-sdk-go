@@ -24,6 +24,35 @@ func Test_GenerateClaimRandSalt(t *testing.T) {
 	t.Log(hashStringBuilder.String())
 }
 
+func Test_SplitClaim(t *testing.T) {
+	jsonString := "{\"nodeID\":\"testNodeID\",\"nodeName\":\"testNodeName\",\"url\":\"http://www.datumtechs.org\"}"
+
+	claim := make(map[string]interface{})
+	err := json.Unmarshal([]byte(jsonString), &claim)
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	disclosureMap := common.Clone(claim)
+	disclosureMap["nodeID"] = 0
+	disclosureMap["nodeName"] = 1
+	disclosureMap["url"] = 0
+
+	undisclosedClaim := common.Clone(claim)
+
+	seed := common.Uint64ToBigEndianBytes(uint64(23523865082340324))
+
+	hashStringBuilder := strings.Builder{}
+	GenerateClaimSaltForMap(claim, seed, &hashStringBuilder)
+	t.Log(hashStringBuilder.String())
+
+	seed = common.Uint64ToBigEndianBytes(uint64(23523865082340324))
+	SplitForMap(claim, disclosureMap, undisclosedClaim, seed)
+	t.Log(claim)
+	t.Log(disclosureMap)
+	t.Log(undisclosedClaim)
+
+}
+
 func Test_marshalJson(t *testing.T) {
 	v := 3.1415926535
 	b, _ := json.Marshal(v)

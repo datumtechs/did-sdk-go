@@ -109,6 +109,9 @@ func Test_verifyVC(t *testing.T) {
 		t.Fatal()
 	}
 
+	/*ok, _ := didService.VcService.VerifyVC(&cred)
+	a.Equal(true, ok)*/
+
 	ok := didService.VcService.VerifyVCWithPublicKey(&cred, didService.VcService.ctx.GetPublicKey())
 	a.Equal(true, ok)
 }
