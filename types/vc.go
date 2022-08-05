@@ -5,7 +5,6 @@ import (
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/keys/vc"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,6 +26,24 @@ const (
 	VC_EVENT_SIGNATURE    uint8 = 1
 )
 
+type CredentialStatus int8
+
+const (
+	Credential_VALID CredentialStatus = iota
+	Credential_INVALID
+)
+
+func (s CredentialStatus) String() string {
+	switch s {
+	case Credential_VALID:
+		return "Valid"
+	case Credential_INVALID:
+		return "Invalid"
+	default:
+		return "NA"
+	}
+}
+
 type Credential struct {
 	Context        string            `json:"context,omitempty"`
 	Version        string            `json:"version,omitempty"`
@@ -36,10 +53,9 @@ type Credential struct {
 	IssuanceDate   string            `json:"issuanceDate,omitempty"`
 	ExpirationDate string            `json:"expirationDate,omitempty"`
 	ClaimData      Claim             `json:"claimData,omitempty"`
-	ClaimMeta      map[string]string `json:"claimMeta,omitempty"`
+	ClaimMeta      map[string]string `json:"claimMeta,omitempty"` //todo: just define as string - pctId
 	Proof          Proof             `json:"proof,omitempty"`
 	Holder         string            `json:"holder,omitempty"` // the holder DID.
-
 }
 
 type CredentialWrapper struct {
@@ -48,41 +64,13 @@ type CredentialWrapper struct {
 	Disclosure map[string]int
 }
 
-/*func (c *Credential) GetCredentialThumbprintWithoutSig(disclosures map[string]int, seed uint64) string {
-	rawCredMap := c.GetRawCredentialMap()
-	claimHash := c.ClaimData.GetHash(disclosures, seed)
-	rawCredMap["claimData"] = claimHash
-	return ToJson(rawCredMap)
-}
-
-func (c *Credential) GetRawCredentialMap() map[string]interface{} {
-	cred := make(map[string]interface{})
-	cred["context"] = c.Context
-	cred["id"] = c.Id
-	cred["pctId"] = c.PctId
-	cred["issuer"] = c.Issuer
-	cred["holder"] = c.Holder
-	cred["issuanceDate"] = c.IssuanceDate
-	cred["expirationDate"] = c.ExpirationDate
-	return cred
-}
-*/
-
-/*func (c *Credential) GetRaw(disclosureMap map[string]int, seed uint64) string {
-	claimHash := c.ClaimData.GetHash(disclosureMap, seed)
-	credMap := c.ToMap()
-	delete(credMap, vckeys.PROOF)
-	credMap[vckeys.CLAIM_DATA] = claimHash
-	return common.MapToJson(credMap)
-}*/
-
 // When seed=0, a random number will be generated as seed.
-func (c *Credential) GetDigest(disclosureMap map[string]int, seed uint64) []byte {
-	claimHash := c.ClaimData.GetHash(nil, c.ClaimData.GetSeed())
+func (c *Credential) GetDigest(seed uint64) (credentialHash []byte, rootHash string) {
+	claimHash, rootHash := c.ClaimData.GetHash(seed)
 	credMap := c.ToMap()
 	delete(credMap, vckeys.PROOF)
 	credMap[vckeys.CLAIM_DATA] = claimHash
-	return crypto.SHA3(common.MapToJson(credMap))
+	return crypto.SHA3(common.MapToJson(credMap)), rootHash
 }
 
 // todo: convert to map by reflect
@@ -101,34 +89,21 @@ func (c *Credential) ToMap() map[string]interface{} {
 	return m
 }
 
-/*
-func (c *Credential) GenerateRawData(claimHash string) string {
-	cred := make(map[string]interface{})
-	cred["context"] = c.Context
-	cred["id"] = c.Id
-	cred["pctId"] = c.PctId
-	cred["issuer"] = c.Issuer
-	cred["holder"] = c.Holder
-	cred["issuanceDate"] = c.IssuanceDate
-	cred["expirationDate"] = c.ExpirationDate
-	cred["claimHash"] = claimHash
-
-	return ToJson(cred)
-}*/
-
-type ProofBrief struct {
-	CredentialHash ethcommon.Hash
+type EvidenceSignInfo struct {
+	CredentialHash string
 	SignerPubKey   string
 	Signature      string
+	Timestamp      string
+	Status         string
 }
 
-func (proof *ProofBrief) AddSignerPubKey(signerPubKey string) {
+func (proof *EvidenceSignInfo) SupplementSignerPubKey(signerPubKey string) {
 	if len(proof.SignerPubKey) == 0 {
 		proof.SignerPubKey = signerPubKey
 	}
 	return
 }
-func (proof *ProofBrief) AddSignature(signature string) {
+func (proof *EvidenceSignInfo) SupplementSignature(signature string) {
 	if len(proof.Signature) == 0 {
 		proof.Signature = signature
 	}
