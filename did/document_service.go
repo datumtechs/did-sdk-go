@@ -3,9 +3,11 @@ package did
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
+	"github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -183,7 +185,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 		CopyResp(docStatusResp, response)
 		return response
 	}
-	document.Status = docStatusResp.Data.String()
+	document.Status = docStatusResp.Data
 
 	// 遍历区块日志，查询document其它数据
 	timeout := time.Duration(5000) * time.Millisecond
@@ -205,7 +207,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 				document.Updated = event.UpdateTime
 				prevBlock = event.BlockNumber
 			case types.DOC_EVEN_PUBLICKEY:
-				didPublicKey := types.ParseToDidPublicKey(document.Id, event.FieldValue)
+				didPublicKey := types.EventToDidPublicKey(document.Id, event.FieldValue)
 				document.Updated = event.UpdateTime
 				document.SupplementDidPublicKey(didPublicKey)
 				prevBlock = event.BlockNumber
@@ -367,6 +369,48 @@ func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Respo
 		return response
 	}
 	response.Data = types.DocumentStatus(status)
+	response.Status = Response_SUCCESS
+	return response
+}
+
+func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyId string, privateKey *ecdsa.PrivateKey) *Response[*ecdsa.PublicKey] {
+	response := new(Response[*ecdsa.PublicKey])
+	response.CallMode = true
+	response.Status = Response_FAILURE
+
+	if document == nil {
+		response.Msg = "Did document not found"
+		return response
+	}
+	if document.Status == types.DOC_DEACTIVATION {
+		response.Msg = "Did document is DEACTIVATION"
+		return response
+	}
+	didPublicKey := document.FindDidPublicKeyByDidPublicKeyId(publicKeyId)
+	if didPublicKey == nil {
+		response.Msg = "public key ID not found in Did document"
+		return response
+	}
+
+	var pubkeyHex string = ""
+	if didPublicKey.Status == types.PublicKey_INVALID {
+		response.Msg = "The public key corresponding to the public key ID is INVALID"
+		return response
+	}
+	pubkeyHex = didPublicKey.PublicKey
+	if len(pubkeyHex) == 0 {
+		response.Msg = "The public key corresponding to the public key ID is EMPTY"
+		return response
+	}
+
+	if privateKey != nil {
+		pubkeyHexExpected := hex.EncodeToString(ethcrypto.FromECDSAPub(&privateKey.PublicKey))
+		if pubkeyHex != pubkeyHexExpected {
+			response.Msg = "public key in did document not consistent with the private key"
+			return response
+		}
+	}
+	response.Data = crypto.HexToPublicKey(pubkeyHex)
 	response.Status = Response_SUCCESS
 	return response
 }

@@ -7,5 +7,8 @@ const (
 	TYPE               ProofKey = "type"
 	VERIFICATIONMETHOD ProofKey = "verificationMethod" //publicKeyId
 	JWS                ProofKey = "jws"
-	CHALLENGE          ProofKey = "challenge" //for Presentation
+	SEED               ProofKey = "seed"
+	CLAIM_ROOT_HASH    ProofKey = "claimRootHash"
+	CHALLENGE          ProofKey = "challenge"   //for Presentation
+	DISCLOSURES        ProofKey = "disclosures" //for Presentation
 )

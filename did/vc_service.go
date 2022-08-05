@@ -13,10 +13,10 @@ import (
 	"github.com/datumtechs/did-sdk-go/types/algorithm"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"math/big"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -102,77 +102,35 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 			return response
 		}
 
-		checkDidResp := s.DocumentService.isDidExist(address)
-		if checkDidResp.Status != Response_SUCCESS {
-			CopyResp(checkDidResp, response)
+		checkApplicantDidResp := s.DocumentService.isDidExist(address)
+		if checkApplicantDidResp.Status != Response_SUCCESS {
+			CopyResp(checkApplicantDidResp, response)
 			return response
 		}
-		if checkDidResp.Data == false {
+		if checkApplicantDidResp.Data == false {
 			response.Msg = "did does not exist"
 			return response
 		}
-		//2. req.Issuer, the issuer Did should exist and valid
-		issuerAddress, err := types.ParseToAddress(req.Issuer)
-		if err != nil {
-			log.WithError(err).Errorf("failed to parse issuer did: %s", req.Issuer)
 
-			response.Msg = "failed to parse issuer did"
+		//2. req.Issuer, the issuer Did document should exist and valid
+		docResp := s.DocumentService.QueryDidDocument(req.Issuer)
+		if docResp.Status != Response_SUCCESS {
+			CopyResp(docResp, response)
 			return response
 		}
-
-		checkIssuerDidResp := s.DocumentService.isDidExist(issuerAddress)
-		if checkIssuerDidResp.Status != Response_SUCCESS {
-			CopyResp(checkIssuerDidResp, response)
+		checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, req.PublicKeyId, req.PrivateKey)
+		if checkDocResp.Status != Response_SUCCESS {
+			CopyResp(docResp, checkDocResp)
 			return response
-		}
-		if checkIssuerDidResp.Data == false {
-			response.Msg = "issuer did does not exist"
-			return response
-		}
-
-		// check issuer did document status
-
-		docStatusResp := s.DocumentService.GetDidDocumentStatus(issuerAddress)
-		if docStatusResp.Status != Response_SUCCESS {
-			CopyResp(docStatusResp, response)
-			return response
-		}
-		if docStatusResp.Data != types.DOC_ACTIVATION {
-			response.Msg = "issuer did document is DEACTIVATION"
-			return response
-		}
-
-		// 3. the issuer document should include the req.publicKeyId
-		// 4. the req.privateKey and PublicKey identified by PublicKeyId in Did document should be a pair of.
-
-		issuerDocResp := s.DocumentService.QueryDidDocumentByAddress(issuerAddress)
-		if issuerDocResp.Status != Response_SUCCESS {
-			CopyResp(issuerDocResp, response)
-			response.Msg = "failed to find issuer did document"
-			return response
-		}
-		issuerDoc := issuerDocResp.Data
-
-		didPublicKeyToBeUsed := issuerDoc.FindDidPublicKeyByDidPublicKeyId(req.PublicKeyId)
-		if didPublicKeyToBeUsed == nil {
-			response.Msg = "failed to find public key ID to be used"
-			return response
-		} else if didPublicKeyToBeUsed.Status == types.PublicKey_INVALID.String() {
-			response.Msg = "public key to be used is invalid"
-			return response
-		} else {
-			pubKeyMatched := hex.EncodeToString(ethcrypto.FromECDSAPub(&req.PrivateKey.PublicKey))
-			if didPublicKeyToBeUsed.PublicKey != pubKeyMatched {
-				response.Msg = "public key in did document is not consistent with the private key"
-				return response
-			}
 		}
 	}
 	// everything is ok
+	seed := rand.Uint64()
+
 	//credentialWrapper := new(vc.CredentialWrapper)
 	credential := generateCredential(req)
 
-	digest := credential.GetDigest(0)
+	digest, rootHash := credential.GetDigest(seed)
 
 	//fmt.Printf("sign rawData: %s\n", rawData)
 	sig := crypto.SignSecp256k1(digest, req.PrivateKey)
@@ -183,6 +141,8 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 	proofMap[proofkeys.TYPE] = algorithm.ALGO_SECP256K1
 	proofMap[proofkeys.JWS] = hex.EncodeToString(sig)
 	proofMap[proofkeys.VERIFICATIONMETHOD] = req.PublicKeyId
+	proofMap[proofkeys.CLAIM_ROOT_HASH] = rootHash
+	proofMap[proofkeys.SEED] = seed
 	credential.Proof = proofMap
 
 	response.Data = *credential
@@ -247,27 +207,32 @@ func (s *VcService) HasVC(credentialHash ethcommon.Hash) *Response[bool] {
 // 然后获取issuer签发本vc用的public key；
 // 最好做校验
 // todo: 检查vc的claim是否符合pct定义；vc本身的状态; vc的有效期；检查issuer的签发公钥的状态
-func (s *VcService) VerifyVC(credential *types.Credential) (ok bool, pubkey string) {
+func (s *VcService) VerifyVC(credential *types.Credential) *Response[bool] {
+	// init the result
+	response := new(Response[bool])
+	response.CallMode = true
+	response.Status = Response_FAILURE
+
 	// 从链上获取document
-	dicDocResp := s.DocumentService.QueryDidDocument(credential.Issuer)
-	if dicDocResp.Status == Response_SUCCESS {
-		dicDoc := dicDocResp.Data
-		didPubKey := dicDoc.FindDidPublicKeyByDidPublicKeyId(credential.Proof[proofkeys.VERIFICATIONMETHOD])
-		if didPubKey == nil || len(didPubKey.PublicKey) == 0 {
-			return false, ""
-		} else {
-			return s.VerifyVCWithPublicKey(credential, crypto.HexToPublicKey(didPubKey.PublicKey)), didPubKey.PublicKey
-			//return crypto.VerifySecp256k1Signature(rawData, credential.Proof[proof.SIGNATURE], crypto.HexToPublicKey(didPubKey.PublicKey))
-		}
-	} else {
-		return false, ""
+	docResp := s.DocumentService.QueryDidDocument(credential.Issuer)
+	if docResp.Status != Response_SUCCESS {
+		CopyResp(docResp, response)
+		return response
 	}
+	checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, credential.Proof[proofkeys.VERIFICATIONMETHOD].(string), nil)
+	if checkDocResp.Status != Response_SUCCESS {
+		CopyResp(docResp, checkDocResp)
+		return response
+	}
+	response.Data = s.VerifyVCWithPublicKey(credential, checkDocResp.Data)
+	response.Status = Response_SUCCESS
+	return response
 }
 
 func (s *VcService) VerifyVCWithPublicKey(credential *types.Credential, publicKey *ecdsa.PublicKey) bool {
-	sig := credential.Proof[proofkeys.JWS]
+	sig := credential.Proof[proofkeys.JWS].(string)
 
-	digest := credential.GetDigest(credential.ClaimData.GetSeed())
+	digest, _ := credential.GetDigest(credential.Proof[proofkeys.SEED].(uint64))
 	//fmt.Printf("verify rawData: %s\n", rawData)
 
 	return crypto.VerifySecp256k1Signature(digest, sig, publicKey)

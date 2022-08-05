@@ -3,12 +3,14 @@ package did
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
 	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
 	"github.com/datumtechs/did-sdk-go/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -26,14 +28,29 @@ func (s *VcService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
 
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
+	// 从链上获取document
+	docResp := s.DocumentService.QueryDidDocument(req.Credential.Issuer)
+	if docResp.Status != Response_SUCCESS {
+		CopyResp(docResp, response)
+		return response
+	}
+	checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, req.Credential.Proof[proofkeys.VERIFICATIONMETHOD].(string), nil)
+	if checkDocResp.Status != Response_SUCCESS {
+		CopyResp(docResp, checkDocResp)
+		return response
+	}
+
+	pubkeyHex := hex.EncodeToString(ethcrypto.FromECDSAPub(checkDocResp.Data))
+
 	// verify VC 签名
-	ok, pubkeyHex := s.VerifyVC(&req.Credential)
+	ok := s.VerifyVCWithPublicKey(&req.Credential, checkDocResp.Data)
 	if !ok {
 		response.Msg = "failed to verify credential"
 		return response
 	}
+
 	updateTime := common.FormatUTC(time.Now().UTC())
-	digest := req.Credential.GetDigest(req.Credential.ClaimData.GetSeed())
+	digest, _ := req.Credential.GetDigest(req.Credential.Proof[proofkeys.SEED].(uint64))
 	digest32 := ethcommon.BytesToHash(digest)
 
 	// prepare parameters for createCredential()
@@ -66,7 +83,7 @@ func (s *VcService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
 	}
 
 	// call contract CreatePid()
-	tx, err := s.vcContractInstance.CreateCredential(opts, digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS], updateTime)
+	tx, err := s.vcContractInstance.CreateCredential(opts, digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to call contract, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to call contract"
@@ -262,7 +279,7 @@ func (s *VcService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *R
 		return response
 	}
 	//查询issuer签发用publicKey
-	issuerPublicKeyHex := queryIssuerDocResp.Data.FindDidPublicKeyByDidPublicKeyId(req.Credential.Proof[proofkeys.VERIFICATIONMETHOD]).PublicKey
+	issuerPublicKeyHex := queryIssuerDocResp.Data.FindDidPublicKeyByDidPublicKeyId(req.Credential.Proof[proofkeys.VERIFICATIONMETHOD].(string)).PublicKey
 	issuerPublicKey := crypto.HexToPublicKey(issuerPublicKeyHex)
 	if issuerPublicKey == nil {
 		log.Errorf("VerifyCredentialEvidence: cannot unmarshal public key from did document: %s", issuerPublicKeyHex)
@@ -271,7 +288,8 @@ func (s *VcService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *R
 	}
 
 	//查询evidence的状态
-	credentialHash := ethcommon.BytesToHash(req.Credential.GetDigest(req.Credential.ClaimData.GetSeed()))
+	credentialHashSlice, _ := req.Credential.GetDigest(req.Credential.Proof[proofkeys.SEED].(uint64))
+	credentialHash := ethcommon.BytesToHash(credentialHashSlice)
 	status, err := s.vcContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("VerifyCredentialEvidence: failed to get latest block), evidenceId: %s", credentialHash.Hex())

@@ -5,6 +5,7 @@ import (
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
 	"github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 	"strings"
 )
 
@@ -74,7 +75,7 @@ type DidPublicKey struct {
 	//公钥16进制字符串
 	PublicKey string
 	//公钥是否撤消 0: valid; 1: invalid
-	Status string
+	Status PublicKeyStatus
 }
 
 type DidService struct {
@@ -93,7 +94,7 @@ type DidDocument struct {
 	Proof     Proof
 	Created   string
 	Updated   string
-	Status    string
+	Status    DocumentStatus
 }
 
 // SupplementDidPublicKey supplement a DidPublicKey to current DidDocument if the public key does not exist.
@@ -139,20 +140,6 @@ func (doc *DidDocument) SupplementService(services []*DidService) {
 	}
 	return
 }
-
-/*
-func (doc *DidDocument) FindDidPublicKeyByPublicKey(pubKey string) *DidPublicKey {
-	if doc.PublicKey == nil || len(doc.PublicKey) == 0 {
-		return nil
-	}
-	for _, didPubKey := range doc.PublicKey {
-		if didPubKey.PublicKey == pubKey && didPubKey.Revoked == false {
-			return didPubKey
-		}
-	}
-	return nil
-}
-*/
 
 func (doc *DidDocument) FindDidPublicKeyByDidPublicKeyId(didPublicKeyId string) *DidPublicKey {
 	if doc.PublicKey == nil || len(doc.PublicKey) == 0 {
@@ -213,15 +200,6 @@ func BuildPublicKeyId(did string, idx string) string {
 	return builder.String()
 }
 
-func BuildDidPublicKey(did string, pubKey string, pubKeyType PublicKeyType, index string, status PublicKeyStatus) *DidPublicKey {
-	didPublicKey := new(DidPublicKey)
-	didPublicKey.Id = BuildPublicKeyId(did, index)
-	didPublicKey.PublicKey = pubKey
-	didPublicKey.Type = string(pubKeyType)
-	didPublicKey.Status = status.String()
-	return didPublicKey
-}
-
 func BuildFieldValueOfPublicKey(pubKey string, pubKeyType PublicKeyType, index string, status PublicKeyStatus) string {
 	builder := strings.Builder{}
 	builder.WriteString(pubKey)
@@ -234,14 +212,20 @@ func BuildFieldValueOfPublicKey(pubKey string, pubKeyType PublicKeyType, index s
 	return builder.String()
 }
 
-// todo: test err:=
-func ParseToDidPublicKey(did string, eventValue string) *DidPublicKey {
+func EventToDidPublicKey(did string, eventValue string) *DidPublicKey {
 	items := strings.Split(eventValue, SEPARATOR_PIPELINE)
 
 	didPublicKey := new(DidPublicKey)
 	didPublicKey.Id = BuildPublicKeyId(did, items[2])
 	didPublicKey.PublicKey = items[0]
 	didPublicKey.Type = items[1]
-	didPublicKey.Status = items[3]
+	status, err := strconv.Atoi(items[3])
+	if err != nil {
+		log.WithError(err).Errorf("failed to parse public key status in event, status:%s", items[3])
+		didPublicKey.Status = PublicKey_INVALID
+	} else {
+		didPublicKey.Status = PublicKeyStatus(status)
+	}
+
 	return didPublicKey
 }

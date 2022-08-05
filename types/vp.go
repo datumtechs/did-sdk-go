@@ -6,10 +6,10 @@ import (
 )
 
 type Presentation struct {
-	Context              string       `json:"context,omitempty"`
-	Type                 []string     `json:"type,omitempty"`
-	VerifiableCredential []Credential `json:"verifiableCredential,omitempty"`
-	Proof                Proof        `json:"proof,omitempty"`
+	Context              string        `json:"context,omitempty"`
+	Type                 []string      `json:"type,omitempty"`
+	VerifiableCredential []*Credential `json:"verifiableCredential,omitempty"`
+	Proof                Proof         `json:"proof,omitempty"`
 }
 
 func (p *Presentation) ToRawData() string {

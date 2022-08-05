@@ -45,18 +45,17 @@ func (s CredentialStatus) String() string {
 }
 
 type Credential struct {
-	Context          string            `json:"context,omitempty"`
-	Version          string            `json:"version,omitempty"`
-	Id               string            `json:"id,omitempty"`
-	Type             []string          `json:"type,omitempty"`
-	Issuer           string            `json:"issuer,omitempty"` // the issuer DID.
-	IssuanceDate     string            `json:"issuanceDate,omitempty"`
-	ExpirationDate   string            `json:"expirationDate,omitempty"`
-	ClaimData        Claim             `json:"claimData,omitempty"`
-	ClaimMeta        map[string]string `json:"claimMeta,omitempty"`        //todo: just define as string - pctId
-	DisclosurePolicy string            `json:"disclosurePolicy,omitempty"` //json, the leaf entry's value must be 0: NOT_DISCLOSED, 1: DISCLOSED
-	Proof            Proof             `json:"proof,omitempty"`
-	Holder           string            `json:"holder,omitempty"` // the holder DID.
+	Context        string            `json:"context,omitempty"`
+	Version        string            `json:"version,omitempty"`
+	Id             string            `json:"id,omitempty"`
+	Type           []string          `json:"type,omitempty"`
+	Issuer         string            `json:"issuer,omitempty"` // the issuer DID.
+	IssuanceDate   string            `json:"issuanceDate,omitempty"`
+	ExpirationDate string            `json:"expirationDate,omitempty"`
+	ClaimData      Claim             `json:"claimData,omitempty"`
+	ClaimMeta      map[string]string `json:"claimMeta,omitempty"` //todo: just define as string - pctId
+	Proof          Proof             `json:"proof,omitempty"`
+	Holder         string            `json:"holder,omitempty"` // the holder DID.
 }
 
 type CredentialWrapper struct {
@@ -65,23 +64,13 @@ type CredentialWrapper struct {
 	Disclosure map[string]int
 }
 
-func (c *Credential) GetDisclosures() Claim {
-	if len(c.DisclosurePolicy) == 0 {
-		return nil
-	}
-	disclosureMap := make(Claim)
-	//todo:handle the error
-	json.Unmarshal([]byte(c.DisclosurePolicy), &disclosureMap)
-	return disclosureMap
-}
-
 // When seed=0, a random number will be generated as seed.
-func (c *Credential) GetDigest(seed uint64) []byte {
-	claimHash := c.ClaimData.GetHash(seed)
+func (c *Credential) GetDigest(seed uint64) (credentialHash []byte, rootHash string) {
+	claimHash, rootHash := c.ClaimData.GetHash(seed)
 	credMap := c.ToMap()
 	delete(credMap, vckeys.PROOF)
 	credMap[vckeys.CLAIM_DATA] = claimHash
-	return crypto.SHA3(common.MapToJson(credMap))
+	return crypto.SHA3(common.MapToJson(credMap)), rootHash
 }
 
 // todo: convert to map by reflect
