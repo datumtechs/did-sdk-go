@@ -224,7 +224,7 @@ func generateCredential(req CreateCredentialReq) *types.Credential {
 	return credential
 }
 
-func (s *VcService) SaveVCProof(privateKey *ecdsa.PrivateKey, digestHash []byte, singer ethcommon.Address, proofSignature string) *Response[bool] {
+func (s *VcService) SaveVCProof(privateKey *ecdsa.PrivateKey, digestHash []byte, issuerPubkey string, proofSignature string) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
@@ -233,11 +233,12 @@ func (s *VcService) SaveVCProof(privateKey *ecdsa.PrivateKey, digestHash []byte,
 	s.ctx.SetPrivateKey(privateKey)
 
 	digestHash32 := ethcommon.BytesToHash(digestHash)
+	updateTime := common.FormatUTC(time.Now().UTC())
 
 	// prepare parameters for createCredential()
-	input, err := PackAbiInput(s.abi, "createCredential", digestHash32, singer.Hex(), proofSignature)
+	input, err := PackAbiInput(s.abi, "createCredential", digestHash32, issuerPubkey, proofSignature, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed to pack input data for CreateCredential(), singer:%s", singer)
+		log.WithError(err).Errorf("failed to pack input data for CreateCredential(), issuerPubkey:%s", issuerPubkey)
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -249,7 +250,7 @@ func (s *VcService) SaveVCProof(privateKey *ecdsa.PrivateKey, digestHash []byte,
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, vcContractAddress, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for CreateCredential(), singer:%s", singer.Hex())
+		log.WithError(err).Errorf("failed to estimate gas for CreateCredential(), issuerPubkey:%s", issuerPubkey)
 		response.Msg = "failed to estimate gas"
 		return response
 	}
@@ -258,15 +259,15 @@ func (s *VcService) SaveVCProof(privateKey *ecdsa.PrivateKey, digestHash []byte,
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 	if err != nil {
-		log.WithError(err).Errorf("failed to build tx options for CreateCredential(), singer:%s", singer.Hex())
+		log.WithError(err).Errorf("failed to build tx options for CreateCredential(), issuerPubkey:%s", issuerPubkey)
 		response.Msg = "failed to estimate gas"
 		return response
 	}
 
-	// call contract CreatePid()
-	tx, err := s.vcContractInstance.CreateCredential(opts, digestHash32, singer.Hex(), proofSignature)
+	// call contract CreateCredential()
+	tx, err := s.vcContractInstance.CreateCredential(opts, digestHash32, issuerPubkey, proofSignature, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call CreateCredential(), singer:%s", singer.Hex())
+		log.WithError(err).Errorf("failed to call CreateCredential(), singer:%s", issuerPubkey)
 		response.Msg = "failed to call contract"
 		return response
 	}

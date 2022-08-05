@@ -301,7 +301,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
-	// call contract CreatePid()
+	// call contract SetAttribute()
 	tx, err := s.didContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call SetAttribute(), address: %s", address)

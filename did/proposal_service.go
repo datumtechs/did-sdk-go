@@ -161,7 +161,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
-	// call contract CreatePid()
+	// call contract SubmitProposal()
 	tx, err := s.proposalContractInstance.SubmitProposal(opts, req.ProposalType, req.ProposalUrl, req.Candidate, req.CandidateServiceUrl)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call submitProposal(), error: %+v", err)
@@ -243,7 +243,7 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
-	// call contract CreatePid()
+	// call contract VoteProposal()
 	tx, err := s.proposalContractInstance.VoteProposal(opts, req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call VoteProposal(),proposalId:%d", req.ProposalId)
@@ -314,7 +314,7 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
-	// call contract CreatePid()
+	// call contract WithdrawProposal()
 	tx, err := s.proposalContractInstance.WithdrawProposal(opts, req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call WithdrawProposal(),proposalId:%d", req.ProposalId)
@@ -387,7 +387,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
-	// call contract CreatePid()
+	// call contract EffectProposal()
 	tx, err := s.proposalContractInstance.EffectProposal(opts, req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call EffectProposal(), error: %+v", err)

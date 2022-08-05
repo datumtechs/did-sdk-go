@@ -3,6 +3,7 @@ module github.com/datumtechs/did-sdk-go
 go 1.18
 
 require (
+	github.com/PlatONnetwork/PlatON-Go v1.2.2
 	github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/google/uuid v1.2.0
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/PlatONnetwork/PlatON-Go v1.2.2 // indirect
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
