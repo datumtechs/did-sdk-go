@@ -19,6 +19,6 @@ func Test_createDid(t *testing.T) {
 	a := assert.New(t)
 	a.Equal(Response_SUCCESS, response.Status)
 
-	t.Logf("response.Data:%s", response.Data)
+	t.Logf("response:%+v", response)
 
 }
