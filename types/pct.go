@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 type Pct struct {
-	Issuer     common.Address
+	Issuer     ethcommon.Address
 	JsonSchema string
 	Extra      []byte
 }

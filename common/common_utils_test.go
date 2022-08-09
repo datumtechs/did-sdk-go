@@ -46,3 +46,20 @@ func Test_GenerateSequence256(t *testing.T) {
 		fmt.Print("\n")
 	}
 }
+
+func Test_VerifyValidJsonSchema(t *testing.T) {
+	validSchema := "{\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"nodeID\": {\n      \"type\": \"string\"\n    },\n    \"nodeName\": {\n      \"type\": \"string\"\n    },\n    \"url\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+
+	result := VerifyJsonSchema(validSchema)
+
+	a := assert.New(t)
+	a.Equal(true, result)
+}
+func Test_VerifyInvalidJsonSchema(t *testing.T) {
+	invalidSchema := "{\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"nodeID\": {\n      \"type\": \"string\"\n    },\n    \"nodeName\": {\n      \"type\": \"string\"\n    },\n    \"url\": {\n      \"type\": \"string\",\n    }\n  }\n}"
+
+	result := VerifyJsonSchema(invalidSchema)
+
+	a := assert.New(t)
+	a.Equal(false, result)
+}

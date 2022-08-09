@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func Test_createVP(t *testing.T) {
+func Test_CreatePresentation(t *testing.T) {
 	setup()
 
 	claimVar := creteComplexClaim()
@@ -17,12 +17,12 @@ func Test_createVP(t *testing.T) {
 	req := new(CreatePresentationReq)
 	req.Challenge = "1234567"
 	req.PresentationPolicy = map[string]types.Claim{pctId.String(): disclosureVar}
-	vc := createVC(claimVar)
+	vc := createCredential(claimVar)
 	req.Credential = []*types.Credential{vc}
 
 	req.Authentication = Authentication{Issuer: vc.Issuer, IssuerPrivateKey: privateKey, PublicKeyId: publicKeyId}
 
-	response := didService.VcService.CreateVP(*req)
+	response := didService.CredentialService.CreatePresentation(*req)
 
 	b, _ := json.Marshal(response.Data)
 
@@ -33,7 +33,7 @@ func Test_createVP(t *testing.T) {
 
 }
 
-func createVC(claim types.Claim) *types.Credential {
+func createCredential(claim types.Claim) *types.Credential {
 
 	expirationDate := "1989-06-06-18T21:19:10"
 	req := new(CreateCredentialReq)
@@ -46,7 +46,7 @@ func createVC(claim types.Claim) *types.Credential {
 	req.PrivateKey = privateKey
 	req.PublicKeyId = publicKeyId
 	req.Type = types.CREDENTIAL_TYPE_VC
-	response := didService.VcService.CreateCredentialSimple(*req)
+	response := didService.CredentialService.CreateCredentialSimple(*req)
 	return &response.Data
 }
 

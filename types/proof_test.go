@@ -1,7 +1,7 @@
 package types
 
 import (
-	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
+	"github.com/datumtechs/did-sdk-go/keys/proof"
 	"testing"
 )
 

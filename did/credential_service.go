@@ -2,7 +2,6 @@ package did
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
@@ -13,34 +12,36 @@ import (
 	"github.com/datumtechs/did-sdk-go/types/algorithm"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethhexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"math/big"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
 
-type VcService struct {
-	ctx                chainclient.Context
-	abi                abi.ABI
-	vcContractInstance *contracts.Credential
-	DocumentService    *DocumentService
-	PctService         *PctService
+type CredentialService struct {
+	ctx                        chainclient.Context
+	abi                        abi.ABI
+	credentialContractInstance *contracts.Credential
+	DocumentService            *DocumentService
+	PctService                 *PctService
 }
 
-func NewVcService(ctx chainclient.Context, documentService *DocumentService, pctService *PctService) *VcService {
-	log.Info("Init Vc Service ...")
-	m := new(VcService)
+func NewCredentialService(ctx chainclient.Context, documentService *DocumentService, pctService *PctService) *CredentialService {
+	log.Info("Init Credential Service ...")
+	m := new(CredentialService)
 	m.ctx = ctx
 	m.DocumentService = documentService
 	m.PctService = pctService
 
-	instance, err := contracts.NewCredential(vcContractAddress, ctx.GetClient())
+	instance, err := contracts.NewCredential(credentialContractAddress, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
-	m.vcContractInstance = instance
+	m.credentialContractInstance = instance
 
 	abiCode, err := abi.JSON(strings.NewReader(contracts.CredentialMetaData.ABI))
 	if err != nil {
@@ -62,11 +63,11 @@ type CreateCredentialReq struct {
 	ExpirationDate string
 }
 
-func (s *VcService) CreateCredentialSimple(req CreateCredentialReq) *Response[types.Credential] {
+func (s *CredentialService) CreateCredentialSimple(req CreateCredentialReq) *Response[types.Credential] {
 	return s.doCreateCredential(req, true)
 }
 
-func (s *VcService) CreateCredential(req CreateCredentialReq) *Response[types.Credential] {
+func (s *CredentialService) CreateCredential(req CreateCredentialReq) *Response[types.Credential] {
 	return s.doCreateCredential(req, false)
 }
 
@@ -76,7 +77,7 @@ func (s *VcService) CreateCredential(req CreateCredentialReq) *Response[types.Cr
 // 3. if req.publicKeyId is provided, the issuer document should include the req.publicKeyId; else use the first valid public key in document.
 // 4. the req.privateKey and PublicKey identified by PublicKeyId in Did document should be a pair of.
 // 5. req.Claim should march the req.PctId's template
-func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Response[types.Credential] {
+func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple bool) *Response[types.Credential] {
 	// init the result
 	response := new(Response[types.Credential])
 	response.CallMode = false
@@ -139,10 +140,10 @@ func (s *VcService) doCreateCredential(req CreateCredentialReq, simple bool) *Re
 	proofMap := make(types.Proof)
 	proofMap[proofkeys.CREATED] = credential.IssuanceDate
 	proofMap[proofkeys.TYPE] = algorithm.ALGO_SECP256K1
-	proofMap[proofkeys.JWS] = hex.EncodeToString(sig)
+	proofMap[proofkeys.JWS] = ethhexutil.Encode(sig)
 	proofMap[proofkeys.VERIFICATIONMETHOD] = req.PublicKeyId
 	proofMap[proofkeys.CLAIM_ROOT_HASH] = rootHash
-	proofMap[proofkeys.SEED] = seed
+	proofMap[proofkeys.SEED] = strconv.FormatUint(seed, 10)
 	credential.Proof = proofMap
 
 	response.Data = *credential
@@ -183,13 +184,13 @@ func generateCredential(req CreateCredentialReq) *types.Credential {
 	return credential
 }
 
-func (s *VcService) HasVC(credentialHash ethcommon.Hash) *Response[bool] {
+func (s *CredentialService) HasCredential(credentialHash ethcommon.Hash) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	has, err := s.vcContractInstance.IsHashExist(nil, credentialHash)
+	has, err := s.credentialContractInstance.IsHashExist(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call IsHashExist(), error: %+v", err)
 		response.Status = Response_FAILURE
@@ -202,12 +203,12 @@ func (s *VcService) HasVC(credentialHash ethcommon.Hash) *Response[bool] {
 	return response
 }
 
-// VerifyVC verify the proof signature
+// VerifyCredential verify the proof signature
 // 首先，获取credential的指纹数据原文，以及credential的proof。signature；
 // 然后获取issuer签发本vc用的public key；
 // 最好做校验
 // todo: 检查vc的claim是否符合pct定义；vc本身的状态; vc的有效期；检查issuer的签发公钥的状态
-func (s *VcService) VerifyVC(credential *types.Credential) *Response[bool] {
+func (s *CredentialService) VerifyCredential(credential *types.Credential) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = true
@@ -224,15 +225,21 @@ func (s *VcService) VerifyVC(credential *types.Credential) *Response[bool] {
 		CopyResp(docResp, checkDocResp)
 		return response
 	}
-	response.Data = s.VerifyVCWithPublicKey(credential, checkDocResp.Data)
+	response.Data = s.VerifyCredentialWithPublicKey(credential, checkDocResp.Data)
 	response.Status = Response_SUCCESS
 	return response
 }
 
-func (s *VcService) VerifyVCWithPublicKey(credential *types.Credential, publicKey *ecdsa.PublicKey) bool {
+func (s *CredentialService) VerifyCredentialWithPublicKey(credential *types.Credential, publicKey *ecdsa.PublicKey) bool {
 	sig := credential.Proof[proofkeys.JWS].(string)
 
-	digest, _ := credential.GetDigest(credential.Proof[proofkeys.SEED].(uint64))
+	seed, err := credential.Proof.GetSeed()
+	if err != nil {
+		log.WithError(err).Error("failed to parse see")
+		return false
+	}
+
+	digest, _ := credential.GetDigest(seed)
 	//fmt.Printf("verify rawData: %s\n", rawData)
 
 	return crypto.VerifySecp256k1Signature(digest, sig, publicKey)

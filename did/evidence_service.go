@@ -3,13 +3,12 @@ package did
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
-	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
+	"github.com/datumtechs/did-sdk-go/keys/proof"
 	"github.com/datumtechs/did-sdk-go/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethhexuti "github.com/ethereum/go-ethereum/common/hexutil"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -20,7 +19,7 @@ type CreateEvidenceReq struct {
 	PrivateKey *ecdsa.PrivateKey // Required: The private key of to sign transaction
 }
 
-func (s *VcService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
+func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
 	// init the result
 	response := new(Response[string])
 	response.CallMode = false
@@ -40,33 +39,40 @@ func (s *VcService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
 		return response
 	}
 
-	pubkeyHex := hex.EncodeToString(ethcrypto.FromECDSAPub(checkDocResp.Data))
+	pubkeyHex := ethhexuti.Encode(ethcrypto.FromECDSAPub(checkDocResp.Data))
 
 	// verify VC 签名
-	ok := s.VerifyVCWithPublicKey(&req.Credential, checkDocResp.Data)
+	ok := s.VerifyCredentialWithPublicKey(&req.Credential, checkDocResp.Data)
 	if !ok {
 		response.Msg = "failed to verify credential"
 		return response
 	}
 
 	updateTime := common.FormatUTC(time.Now().UTC())
-	digest, _ := req.Credential.GetDigest(req.Credential.Proof[proofkeys.SEED].(uint64))
+
+	seed, err := req.Credential.Proof.GetSeed()
+	if err != nil {
+		response.Msg = "failed to parse seed"
+		return response
+	}
+
+	digest, _ := req.Credential.GetDigest(seed)
 	digest32 := ethcommon.BytesToHash(digest)
 
 	// prepare parameters for createCredential()
-	input, err := PackAbiInput(s.abi, "createCredential", digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS], updateTime)
+	input, err := PackAbiInput(s.abi, "createCredential", digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to pack input data, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to pack input data"
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, vcContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, credentialContractAddress, input)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to estimate gas, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to estimate gas"
@@ -78,12 +84,12 @@ func (s *VcService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to build tx options, credential ID:%s", req.Credential.Id)
-		response.Msg = "failed to estimate gas"
+		response.Msg = "failed to build tx options"
 		return response
 	}
 
 	// call contract CreatePid()
-	tx, err := s.vcContractInstance.CreateCredential(opts, digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
+	tx, err := s.credentialContractInstance.CreateCredential(opts, digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to call contract, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to call contract"
@@ -113,15 +119,15 @@ type QueryEvidenceReq struct {
 	EvidenceId string // credential digest, it is used to generate proof's signature by issuer
 }
 
-func (s *VcService) QueryEvidence(req QueryEvidenceReq) *Response[*types.EvidenceSignInfo] {
+func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types.EvidenceSignInfo] {
 	// init the result
 	response := new(Response[*types.EvidenceSignInfo])
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	credentialHash := ethcommon.BytesToHash(hexutil.MustDecode(req.EvidenceId))
+	credentialHash := ethcommon.BytesToHash(ethhexuti.MustDecode(req.EvidenceId))
 
-	status, err := s.vcContractInstance.GetStatus(nil, credentialHash)
+	status, err := s.credentialContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("QueryEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
@@ -133,7 +139,7 @@ func (s *VcService) QueryEvidence(req QueryEvidenceReq) *Response[*types.Evidenc
 	// 设置 credential 状态，也就是proof/evidence状态
 	evidence.Status = types.CredentialStatus(status).String()
 
-	blockNo, err := s.vcContractInstance.GetLatestBlock(nil, ethcommon.BytesToHash(hexutil.MustDecode(req.EvidenceId)))
+	blockNo, err := s.credentialContractInstance.GetLatestBlock(nil, ethcommon.BytesToHash(ethhexuti.MustDecode(req.EvidenceId)))
 	if err != nil {
 		log.WithError(err).Errorf("QueryEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
@@ -145,15 +151,15 @@ func (s *VcService) QueryEvidence(req QueryEvidenceReq) *Response[*types.Evidenc
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
 	prevBlock := blockNo
 	for prevBlock.Uint64() > 0 {
-		logs := s.ctx.GetLog(timeoutCtx, vcContractAddress, prevBlock)
+		logs := s.ctx.GetLog(timeoutCtx, credentialContractAddress, prevBlock)
 		for _, eachLog := range logs {
-			event, err := s.vcContractInstance.ParseCredentialAttributeChange(*eachLog)
+			event, err := s.credentialContractInstance.ParseCredentialAttributeChange(eachLog)
 			if err != nil {
 				response.Msg = "failed to parse CredentialAttributeChange event"
 				return response
@@ -180,15 +186,15 @@ type RevokeEvidenceReq struct {
 	PrivateKey *ecdsa.PrivateKey // Required: The private key of to sign transaction
 }
 
-func (s *VcService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
+func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	credentialHash := ethcommon.BytesToHash(hexutil.MustDecode(req.EvidenceId))
+	credentialHash := ethcommon.BytesToHash(ethhexuti.MustDecode(req.EvidenceId))
 
-	status, err := s.vcContractInstance.GetStatus(nil, credentialHash)
+	status, err := s.credentialContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
@@ -204,7 +210,7 @@ func (s *VcService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
 	// prepare parameters for EffectProposal()
-	input, err := PackAbiInput(s.abi, "ChangeStatus", credentialHash, int8(types.Credential_INVALID))
+	input, err := PackAbiInput(s.abi, "changeStatus", credentialHash, int8(types.Credential_INVALID))
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to pack input, evidenceId:%s", req.EvidenceId)
 		response.Status = Response_FAILURE
@@ -212,12 +218,12 @@ func (s *VcService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, vcContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, credentialContractAddress, input)
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to estimate gas, evidenceId:%s", req.EvidenceId)
 		response.Status = Response_FAILURE
@@ -230,7 +236,7 @@ func (s *VcService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
 	// call contract ChangeStatus()
-	tx, err := s.vcContractInstance.ChangeStatus(opts, credentialHash, int8(types.Credential_INVALID))
+	tx, err := s.credentialContractInstance.ChangeStatus(opts, credentialHash, int8(types.Credential_INVALID))
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence:  failed to call contract, evidenceId:%s", req.EvidenceId)
 		response.Status = Response_FAILURE
@@ -265,7 +271,7 @@ type VerifyCredentialEvidenceReq struct {
 }
 
 // VerifyCredentialEvidence 首先校验credential的proof是否符合credential；然后校验proof对应的evidence
-func (s *VcService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *Response[bool] {
+func (s *CredentialService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = true
@@ -288,9 +294,17 @@ func (s *VcService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *R
 	}
 
 	//查询evidence的状态
-	credentialHashSlice, _ := req.Credential.GetDigest(req.Credential.Proof[proofkeys.SEED].(uint64))
+
+	seed, err := req.Credential.Proof.GetSeed()
+	if err != nil {
+		response.Msg = "failed to parse seed"
+		return response
+	}
+
+	credentialHashSlice, _ := req.Credential.GetDigest(seed)
+
 	credentialHash := ethcommon.BytesToHash(credentialHashSlice)
-	status, err := s.vcContractInstance.GetStatus(nil, credentialHash)
+	status, err := s.credentialContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("VerifyCredentialEvidence: failed to get latest block), evidenceId: %s", credentialHash.Hex())
 		response.Msg = "failed to get latest block"
@@ -318,7 +332,7 @@ func (s *VcService) VerifyCredentialEvidence(req VerifyCredentialEvidenceReq) *R
 		return response
 	}
 
-	ok := s.VerifyVCWithPublicKey(&req.Credential, issuerPublicKey)
+	ok := s.VerifyCredentialWithPublicKey(&req.Credential, issuerPublicKey)
 	response.Data = ok
 	response.Status = Response_SUCCESS
 	return response

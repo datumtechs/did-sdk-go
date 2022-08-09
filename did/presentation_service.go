@@ -2,13 +2,13 @@ package did
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
-	claimmetakeys "github.com/datumtechs/did-sdk-go/keys/claimmeta"
-	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
+	"github.com/datumtechs/did-sdk-go/keys/claimmeta"
+	"github.com/datumtechs/did-sdk-go/keys/proof"
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/datumtechs/did-sdk-go/types/algorithm"
+	ethhexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	"time"
 )
 
@@ -24,7 +24,7 @@ type CreatePresentationReq struct {
 	PresentationPolicy map[string]types.Claim //key is pct_Id
 }
 
-func (s *VcService) CreateVP(req CreatePresentationReq) *Response[types.Presentation] {
+func (s *CredentialService) CreatePresentation(req CreatePresentationReq) *Response[types.Presentation] {
 	// init the result
 	response := new(Response[types.Presentation])
 	response.CallMode = false
@@ -42,16 +42,23 @@ func (s *VcService) CreateVP(req CreatePresentationReq) *Response[types.Presenta
 		credential := req.Credential[idx]
 		disclosures := req.PresentationPolicy[credential.ClaimMeta[claimmetakeys.PCT_ID]]
 		credential.Proof[proofkeys.DISCLOSURES] = disclosures
-		seed := common.Uint64ToBigEndianBytes(credential.Proof[proofkeys.SEED].(uint64))
-		//这里credential.ClaimData是个map，传第的是个指针，所以函数内部的修改会生效
-		err := types.SplitForMap(credential.ClaimData, disclosures, seed)
+
+		seed, err := credential.Proof.GetSeed()
 		if err != nil {
-			response.Msg = "failed to analyse clmain and it's disclosures"
+			response.Msg = "failed to parse seed"
+			return response
+		}
+		seedBytes := common.Uint64ToBigEndianBytes(seed)
+		//这里credential.ClaimData是个map，传第的是个指针，所以函数内部的修改会生效
+		err = types.SplitForMap(credential.ClaimData, disclosures, seedBytes)
+		if err != nil {
+			response.Msg = "failed to analyse claim and it's disclosures"
 			return response
 		}
 
 	}
 	presentation := types.Presentation{}
+	presentation.Type = []string{types.CREDENTIAL_TYPE_VP}
 	presentation.VerifiableCredential = req.Credential
 	digest := presentation.GetDigest()
 	sig := crypto.SignSecp256k1(digest, req.Authentication.IssuerPrivateKey)
@@ -63,7 +70,7 @@ func (s *VcService) CreateVP(req CreatePresentationReq) *Response[types.Presenta
 	proofMap := make(types.Proof)
 	proofMap[proofkeys.CREATED] = createTime
 	proofMap[proofkeys.TYPE] = algorithm.ALGO_SECP256K1
-	proofMap[proofkeys.JWS] = hex.EncodeToString(sig)
+	proofMap[proofkeys.JWS] = ethhexutil.Encode(sig)
 	proofMap[proofkeys.VERIFICATIONMETHOD] = req.Authentication.PublicKeyId
 	proofMap[proofkeys.CHALLENGE] = req.Challenge
 	presentation.Proof = proofMap
@@ -80,7 +87,7 @@ type VerifyPresentationReq struct {
 	PresentationPolicy map[string]types.Claim //key is pct_Id
 }
 
-func (s *VcService) VerifyVP(req VerifyPresentationReq) *Response[bool] {
+func (s *CredentialService) VerifyPresentation(req VerifyPresentationReq) *Response[bool] {
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = false
@@ -110,11 +117,11 @@ func (s *VcService) VerifyVP(req VerifyPresentationReq) *Response[bool] {
 	for idx := 0; idx < len(req.Presentation.VerifiableCredential); idx++ {
 		credential := req.Presentation.VerifiableCredential[idx]
 		/*		claimPolicy := credential.Proof[proofkeys.DISCLOSURES].(types.Claim)
-				seed := credential.Proof[proofkeys.SEED].(uint64)
+				seed, err := credential.Proof.GetSeed()
 				claimRootHash := credential.Proof[proofkeys.CLAIM_ROOT_HASH].(string)
 				pubkeyId := credential.Proof[proofkeys.VERIFICATIONMETHOD].(string)
 		*/
-		checkVcResp := s.VerifyVC(credential)
+		checkVcResp := s.VerifyCredential(credential)
 		if checkVcResp.Status != Response_SUCCESS {
 			CopyResp(checkVcResp, response)
 			return response

@@ -1,0 +1,14 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "nodeID": {
+      "type": "string"
+    },
+    "nodeName": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+    }
+  }
+}

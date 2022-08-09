@@ -2,8 +2,8 @@ package did
 
 import (
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"sync"
 )
 
@@ -16,7 +16,7 @@ var mockWallet *MockWallet
 type MockWallet struct {
 	priKey        *ecdsa.PrivateKey
 	pubKey        *ecdsa.PublicKey
-	walletAddress common.Address
+	walletAddress ethcommon.Address
 }
 
 func MockWalletInstance() *MockWallet {
@@ -27,15 +27,15 @@ func InitMockWallet() {
 	mockWalletOnce.Do(func() {
 		mockWallet = new(MockWallet)
 
-		key, _ := crypto.GenerateKey()
+		key, _ := ethcrypto.GenerateKey()
 		mockWallet.priKey = key
 		mockWallet.pubKey = &key.PublicKey
-		mockWallet.walletAddress = crypto.PubkeyToAddress(key.PublicKey)
+		mockWallet.walletAddress = ethcrypto.PubkeyToAddress(key.PublicKey)
 	})
 }
 
-// GetAddress returns the organization wallet address
-func (m *MockWallet) GetAddress() common.Address {
+// GetAddress returns the organization wallet bech32Addr
+func (m *MockWallet) GetAddress() ethcommon.Address {
 	return m.walletAddress
 }
 
@@ -43,7 +43,7 @@ func (m *MockWallet) GetAddress() common.Address {
 func (m *MockWallet) SetPrivateKey(privateKey *ecdsa.PrivateKey) {
 	m.priKey = privateKey
 	m.pubKey = &privateKey.PublicKey
-	m.walletAddress = crypto.PubkeyToAddress(privateKey.PublicKey)
+	m.walletAddress = ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 }
 
 // GetPrivateKey returns the organization private key

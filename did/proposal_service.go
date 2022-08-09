@@ -39,24 +39,24 @@ func NewProposalService(ctx chainclient.Context) *ProposalService {
 	return m
 }
 
-/*func (s *ProposalService) GetAuthority(address ethcommon.Address) *Response[types.Authority] {
+/*func (s *ProposalService) GetAuthority(bech32Addr ethcommon.Address) *Response[types.Authority] {
 	// init the result
 	response := new(Response[types.Authority])
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	address, url, _, err := s.proposalContractInstance.GetAuthority(nil, address)
+	bech32Addr, url, _, err := s.proposalContractInstance.GetAuthority(nil, bech32Addr)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call GetAuthority(), address: %s", address.String())
+		log.WithError(err).Errorf("failed to call GetAuthority(), bech32Addr: %s", bech32Addr.String())
 		response.Msg = "failed to call contract"
 		return response
 	}
-	if address == (ethcommon.Address{}) || len(url) > 0 {
+	if bech32Addr == (ethcommon.Address{}) || len(url) > 0 {
 		response.Status = Response_FAILURE
 		response.Msg = "authority info is broken"
 	}
 	auth := types.Authority{}
-	auth.Address = address
+	auth.Address = bech32Addr
 	auth.Url = url
 	response.Status = Response_SUCCESS
 	response.Data = auth
@@ -119,8 +119,7 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 }
 
 type SubmitProposalReq struct {
-	// Required: The private key to sign transaction
-	PrivateKey          *ecdsa.PrivateKey
+	PrivateKey          *ecdsa.PrivateKey // Required: The private key to sign transaction
 	ProposalType        uint8
 	ProposalUrl         string
 	Candidate           ethcommon.Address
@@ -145,7 +144,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
@@ -219,14 +218,14 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
 	// prepare parameters for submitProposal()
-	input, err := PackAbiInput(s.abi, "VoteProposal", req.ProposalId)
+	input, err := PackAbiInput(s.abi, "voteProposal", req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to pack input data for VoteProposal(),proposalId:%d", req.ProposalId)
 		response.Msg = "failed to pack input data"
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
@@ -290,14 +289,14 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
 	// prepare parameters for WithdrawProposal()
-	input, err := PackAbiInput(s.abi, "WithdrawProposal", req.ProposalId)
+	input, err := PackAbiInput(s.abi, "withdrawProposal", req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to pack input data for WithdrawProposal(),proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
@@ -362,7 +361,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
 	// prepare parameters for EffectProposal()
-	input, err := PackAbiInput(s.abi, "EffectProposal", req.ProposalId)
+	input, err := PackAbiInput(s.abi, "effectProposal", req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("EffectProposal: failed to pack input data,proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
@@ -370,7 +369,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
@@ -422,17 +421,16 @@ func (s *ProposalService) GetAllProposalId() *Response[[]*big.Int] {
 	// init the result
 	response := new(Response[[]*big.Int])
 	response.CallMode = true
-	response.Status = Response_SUCCESS
+	response.Status = Response_FAILURE
 
 	// call contract getAllProposalId()
 	pIdList, err := s.proposalContractInstance.GetAllProposalId(nil)
 	if err != nil {
 		log.WithError(err).Error("failed to call getAllProposalId()")
-		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
-
+	response.Status = Response_SUCCESS
 	response.Data = pIdList
 	return response
 }
@@ -441,17 +439,16 @@ func (s *ProposalService) GetProposalId(blockNo uint64) *Response[[]*big.Int] {
 	// init the result
 	response := new(Response[[]*big.Int])
 	response.CallMode = true
-	response.Status = Response_SUCCESS
+	response.Status = Response_FAILURE
 
 	// call contract getProposalId()
 	pIdList, err := s.proposalContractInstance.GetProposalId(nil, new(big.Int).SetUint64(blockNo))
 	if err != nil {
 		log.WithError(err).Error("failed to call getProposalId()")
-		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
-
+	response.Status = Response_SUCCESS
 	response.Data = pIdList
 	return response
 }
@@ -460,13 +457,12 @@ func (s *ProposalService) GetProposal(proposalId *big.Int) *Response[*types.Prop
 	// init the result
 	response := new(Response[*types.Proposal])
 	response.CallMode = true
-	response.Status = Response_SUCCESS
+	response.Status = Response_FAILURE
 
 	// call contract getProposalId()
 	pType, pUrl, candidate, candidateServiceUrl, submitter, submitBlockNo, _, err := s.proposalContractInstance.GetProposal(nil, proposalId)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetProposal(),proposalId:%d", proposalId)
-		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
 	}
@@ -479,7 +475,82 @@ func (s *ProposalService) GetProposal(proposalId *big.Int) *Response[*types.Prop
 		CandidateServiceUrl: candidateServiceUrl,
 		SubmitBlockNo:       submitBlockNo.Uint64(),
 	}
-
+	response.Status = Response_SUCCESS
 	response.Data = proposal
 	return response
+}
+
+type ResetIntervalReq struct {
+	// Required: The private key to sign transaction
+	PrivateKey   *ecdsa.PrivateKey
+	IntervalType types.ProposalIntervalType
+	Blocks       *big.Int
+}
+
+func (s *ProposalService) ResetInterval(req ResetIntervalReq) *Response[bool] {
+	// init the result
+	response := new(Response[bool])
+	response.CallMode = false
+	response.Status = Response_FAILURE
+	response.Data = false
+
+	// init the tx signer
+	s.ctx.SetPrivateKey(req.PrivateKey)
+
+	// prepare parameters for EffectProposal()
+	input, err := PackAbiInput(s.abi, "setInterval", uint8(req.IntervalType), req.Blocks)
+	if err != nil {
+		log.WithError(err).Errorf("ResetInterval: failed to pack input data,IntervalType:%d", req.IntervalType)
+		response.Status = Response_FAILURE
+		response.Msg = "failed to pack input data"
+		return response
+	}
+
+	timeout := time.Duration(10000) * time.Millisecond
+	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
+	defer cancelFn()
+
+	// 估算gas
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	if err != nil {
+		log.WithError(err).Errorf("ResetInterval: failed to estimate gas,IntervalType:%d", req.IntervalType)
+		response.Status = Response_FAILURE
+		response.Msg = "failed to estimate gas"
+		return response
+	}
+
+	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
+	gasEstimated = uint64(float64(gasEstimated) * 1.30)
+	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
+
+	// call contract EffectProposal()
+	tx, err := s.proposalContractInstance.SetInterval(opts, uint8(req.IntervalType), req.Blocks)
+	if err != nil {
+		log.WithError(err).Errorf("ResetInterval: failed to call contract,IntervalType:%d", req.IntervalType)
+		response.Status = Response_FAILURE
+		response.Msg = "failed to call contract"
+		return response
+	}
+	log.Debugf("ResetInterval: call contract txHash: %s", tx.Hash().Hex())
+
+	// to get receipt and assemble result
+	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
+	if nil == receipt {
+		response.Status = Response_UNKNOWN
+		response.Msg = "failed to get tx receipt"
+		return response
+	}
+
+	// contract tx execute failed.
+	if receipt.Status == 0 {
+		response.Status = Response_FAILURE
+		response.Msg = "failed to process tx"
+		return response
+	}
+	// 交易信息
+	response.TxInfo = NewTransactionInfo(receipt)
+	response.Data = true
+	response.Status = Response_SUCCESS
+	return response
+
 }

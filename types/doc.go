@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
-	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -57,9 +57,9 @@ func (s DocumentStatus) String() string {
 }
 
 const (
-	DOC_EVENT_CREATE        uint8 = 0
-	DOC_EVEN_AUTHENTICATION uint8 = 1
-	DOC_EVEN_PUBLICKEY      uint8 = 2
+	DOC_EVENT_CREATE   uint8 = 0
+	DOC_EVEN_PUBLICKEY uint8 = 1
+	DOC_EVEN_SERVICE   uint8 = 1
 )
 
 const (
@@ -164,7 +164,7 @@ func (doc *DidDocument) FindDidPublicKeyByPublicKey(publicKeyHex string) *DidPub
 	}
 	return nil
 }
-func BuildDid(address common.Address) string {
+func BuildDid(address ethcommon.Address) string {
 	return fmt.Sprintf("did:pid:%s", platoncommon.Address(address).Bech32())
 }
 
@@ -172,13 +172,19 @@ func ExtractAddress(did string) string {
 	return string(([]byte(did))[len("did:pid:")-1])
 }
 
-func ParseToAddress(did string) (common.Address, error) {
-	platonAddress, err := platoncommon.Bech32ToAddress(string(([]byte(did))[len("did:pid:"):]))
-	if err != nil {
-		log.WithError(err).Errorf("failed to parse did: %s", did)
-		return common.Address{}, err
+func ParseToAddress(did string) (ethcommon.Address, error) {
+
+	addr := string(([]byte(did))[len("did:pid:"):])
+	if platoncommon.IsBech32Address(addr) {
+		platonAddress, err := platoncommon.Bech32ToAddress(addr)
+		if err != nil {
+			log.WithError(err).Errorf("failed to parse did: %s", did)
+			return ethcommon.Address{}, err
+		} else {
+			return ethcommon.Address(platonAddress), nil
+		}
 	} else {
-		return common.Address(platonAddress), nil
+		return ethcommon.HexToAddress(addr), nil
 	}
 }
 

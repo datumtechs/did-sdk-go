@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
-	"github.com/datumtechs/did-sdk-go/keys/vc"
+	"github.com/datumtechs/did-sdk-go/keys/credential"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -68,8 +68,8 @@ type CredentialWrapper struct {
 func (c *Credential) GetDigest(seed uint64) (credentialHash []byte, rootHash string) {
 	claimHash, rootHash := c.ClaimData.GetHash(seed)
 	credMap := c.ToMap()
-	delete(credMap, vckeys.PROOF)
-	credMap[vckeys.CLAIM_DATA] = claimHash
+	delete(credMap, credentialkeys.PROOF)
+	credMap[credentialkeys.CLAIM_DATA] = claimHash
 	return crypto.SHA3(common.MapToJson(credMap)), rootHash
 }
 

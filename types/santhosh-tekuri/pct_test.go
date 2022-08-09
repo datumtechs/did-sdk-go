@@ -8,6 +8,15 @@ import (
 	"testing"
 )
 
+func Test_schemaInvalid(t *testing.T) {
+
+	_, err := jsonschema.Compile("../pctschema/datum-schema-invalid.json")
+	if err != nil {
+		t.Fatalf("%#v", err)
+	}
+
+}
+
 func Test_moreKeys(t *testing.T) {
 
 	sch, err := jsonschema.Compile("../pctschema/datum-schema.json")

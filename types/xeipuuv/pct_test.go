@@ -7,6 +7,27 @@ import (
 	"testing"
 )
 
+func Test_inValidSchema(t *testing.T) {
+
+	schemaLoader := gojsonschema.NewReferenceLoader("file://D:/github.com/datumtechs/did-sdk-go/types/pctschema/datum-schema-invalid.json")
+	documentLoader := gojsonschema.NewReferenceLoader("file://D:/github.com/datumtechs/did-sdk-go/types/pctschema/datum-instance.json")
+
+	schemaLoader.JsonReference()
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if result.Valid() {
+		fmt.Printf("The document is valid\n")
+	} else {
+		fmt.Printf("The document is not valid. see errors :\n")
+		for _, desc := range result.Errors() {
+			fmt.Printf("- %s\n", desc)
+		}
+	}
+}
+
 func Test_validByPct(t *testing.T) {
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file://D:/github.com/datumtechs/did-sdk-go/types/pctschema/datum-schema.json")

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	jsonschema "github.com/json-schema-spec/json-schema-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/xeipuuv/gojsonschema"
 	"math/rand"
@@ -81,6 +82,22 @@ func Uint64ToBigEndianBytes(seed uint64) []byte {
 
 func BigEndianBytesToUint64(seed []byte) uint64 {
 	return binary.BigEndian.Uint64(seed)
+}
+
+func VerifyJsonSchema(jsonSchema string) bool {
+	var schema map[string]interface{}
+	err := json.Unmarshal([]byte(jsonSchema), &schema)
+	if err != nil {
+		log.WithError(err).Errorf("cannot parse schema file, jsonSchema: %s", jsonSchema)
+		return false
+	}
+	_, err = jsonschema.NewValidator([]interface{}{schema})
+	if err != nil {
+		// errors come from invalid schemas, or referring to non-existing schemas
+		log.WithError(err).Errorf("json schema invalid1, jsonSchema: %s", jsonSchema)
+		return false
+	}
+	return true
 }
 
 func VerifyWithJsonSchema(jsonSchema string, content map[string]interface{}) bool {

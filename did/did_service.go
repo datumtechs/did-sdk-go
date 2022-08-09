@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	didContractAddress      = ethcommon.HexToAddress("0xfd67957F61F9cC7A85da7657ED0B54b0A5867223")
-	pctContractAddress      = ethcommon.HexToAddress("0xD4F004109ed8097cbb46dBD22334096DB37b5ce6")
-	proposalContractAddress = ethcommon.HexToAddress("0x0a033cA8faA1cBB184d196a71A0BaeD76cE493cB")
-	vcContractAddress       = ethcommon.HexToAddress("0xE9eD5A657eA3474FD2f3Cc40e93A3470A643E60E")
+	didContractAddress        = ethcommon.HexToAddress("0x043Ed3C631c6d27fe83093E50Eb60b173939F8B3")
+	pctContractAddress        = ethcommon.HexToAddress("0xCddB173756073A6C110886a4558cA4e8841fb70F")
+	proposalContractAddress   = ethcommon.HexToAddress("0xf731e0aD6331F46BfBd06F3264C092917dE6dE2E")
+	credentialContractAddress = ethcommon.HexToAddress("0x0eEf1dA46ca651F08a76dEEA49BcbAc218bD92c8")
 )
 
 func PackAbiInput(abi abi.ABI, method string, params ...interface{}) ([]byte, error) {
@@ -19,10 +19,10 @@ func PackAbiInput(abi abi.ABI, method string, params ...interface{}) ([]byte, er
 }
 
 type DIDService struct {
-	DocumentService *DocumentService
-	PctService      *PctService
-	ProposalService *ProposalService
-	VcService       *VcService
+	DocumentService   *DocumentService
+	PctService        *PctService
+	ProposalService   *ProposalService
+	CredentialService *CredentialService
 }
 
 func NewDIDService(ctx chainclient.Context) *DIDService {
@@ -32,17 +32,17 @@ func NewDIDService(ctx chainclient.Context) *DIDService {
 	didService.DocumentService = NewDocumentService(ctx)
 	didService.PctService = NewPctService(ctx)
 	didService.ProposalService = NewProposalService(ctx)
-	didService.VcService = NewVcService(ctx, didService.DocumentService, didService.PctService)
+	didService.CredentialService = NewCredentialService(ctx, didService.DocumentService, didService.PctService)
 	return didService
 }
 
 /*type DocuementService interface {
-	CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string]
-	GetDocument(address ethcommon.Address) *Response[*doc.DidDocument]
-	SupplementDidPublicKey(address ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, PublicKey string) *Response[bool]
-	HasPublicKey(address ethcommon.Address, pubKey string) *Response[bool]
-	GetDidPublicKey(address ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey]
+	CreateDID(bech32Addr ethcommon.Address, pubKeyHex string) *Response[string]
+	GetDocument(bech32Addr ethcommon.Address) *Response[*doc.DidDocument]
+	SupplementDidPublicKey(bech32Addr ethcommon.Address, pubKeyId string, keyType doc.PublicKeyType, PublicKey string) *Response[bool]
+	HasPublicKey(bech32Addr ethcommon.Address, pubKey string) *Response[bool]
+	GetDidPublicKey(bech32Addr ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey]
 }
-func (s *DIDService) CreateDID(address ethcommon.Address, pubKeyHex string) *Response[string] {
-	return s.documentService.CreateDID(address, pubKeyHex)
+func (s *DIDService) CreateDID(bech32Addr ethcommon.Address, pubKeyHex string) *Response[string] {
+	return s.documentService.CreateDID(bech32Addr, pubKeyHex)
 }*/

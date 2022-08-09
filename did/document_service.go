@@ -3,7 +3,6 @@ package did
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
@@ -11,6 +10,7 @@ import (
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethhexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -61,9 +61,10 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
-	// for did:pid:address
+	// for did:pid:bech32Addr
 	address := ethcrypto.PubkeyToAddress(req.PrivateKey.PublicKey)
 	did := types.BuildDid(address)
+	response.Data = did
 
 	// check if did exist
 	didExistResp := s.isDidExist(address)
@@ -72,7 +73,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 		return response
 	}
 	if didExistResp.Data == true {
-		response.Msg = "Did exists already"
+		response.Msg = "Did exists already, did:=" + did + " bech32Addr:" + address.String()
 		return response
 	}
 
@@ -92,7 +93,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
@@ -166,12 +167,12 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 
 	blockNo, err := s.didContractInstance.GetLatestBlock(nil, address)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call GetLatestBlock(), address: %s", address)
+		log.WithError(err).Errorf("failed to call GetLatestBlock(), bech32Addr: %s", address)
 		response.Msg = "failed to get latest block of DID"
 		return response
 	}
 	if blockNo == nil || blockNo.Uint64() == 0 {
-		log.WithError(err).Errorf("DID not found, address: %s", address)
+		log.WithError(err).Errorf("DID not found, bech32Addr: %s", address)
 		response.Msg = "DID not found"
 		return response
 	}
@@ -188,15 +189,16 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	document.Status = docStatusResp.Data
 
 	// 遍历区块日志，查询document其它数据
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
 	prevBlock := blockNo
-	for prevBlock.Uint64() >= 0 {
+	log.Debugf("blockNumber:%d", prevBlock.Uint64())
+	for prevBlock.Uint64() > 0 {
 		logs := s.ctx.GetLog(timeoutCtx, didContractAddress, prevBlock)
 		for _, eachLog := range logs {
-			event, err := s.didContractInstance.ParseDIDAttributeChange(*eachLog)
+			event, err := s.didContractInstance.ParseDIDAttributeChange(eachLog)
 			if err != nil {
 				response.Msg = "failed to parse contract event"
 				return response
@@ -241,7 +243,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 
 	s.ctx.SetPrivateKey(req.PrivateKey)
 
-	// for did:pid:address
+	// for did:pid:bech32Addr
 	address := ethcrypto.PubkeyToAddress(req.PrivateKey.PublicKey)
 	did := types.BuildDid(address)
 	// check if did exist
@@ -286,14 +288,14 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 		return response
 	}
 
-	timeout := time.Duration(5000) * time.Millisecond
+	timeout := time.Duration(10000) * time.Millisecond
 	timeoutCtx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
 
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
 	if err != nil {
-		log.Errorf("failed to estimate gas for SetAttribute(): %s, address: %v", address, err)
+		log.Errorf("failed to estimate gas for SetAttribute(): %s, bech32Addr: %v", address, err)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to estimate gas"
 		return response
@@ -306,7 +308,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	// call contract SetAttribute()
 	tx, err := s.didContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call SetAttribute(), address: %s", address)
+		log.WithError(err).Errorf("failed to call SetAttribute(), bech32Addr: %s", address)
 		response.Status = Response_FAILURE
 		response.Msg = "failed to call contract"
 		return response
@@ -359,7 +361,7 @@ func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Respo
 
 	status, err := s.didContractInstance.GetStatus(nil, address)
 	if err != nil {
-		log.WithError(err).Errorf("failed to find did document status,address:%s", address)
+		log.WithError(err).Errorf("failed to find did document status,bech32Addr:%s", address)
 		response.Msg = "failed to find did document status"
 		return response
 	}
@@ -404,7 +406,7 @@ func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyI
 	}
 
 	if privateKey != nil {
-		pubkeyHexExpected := hex.EncodeToString(ethcrypto.FromECDSAPub(&privateKey.PublicKey))
+		pubkeyHexExpected := ethhexutil.Encode(ethcrypto.FromECDSAPub(&privateKey.PublicKey))
 		if pubkeyHex != pubkeyHexExpected {
 			response.Msg = "public key in did document not consistent with the private key"
 			return response
@@ -415,12 +417,12 @@ func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyI
 	return response
 }
 
-/*func (s *DocumentService) HasPublicKey(address ethcommon.Address, pubKey string) *Response[bool] {
+/*func (s *DocumentService) HasPublicKey(bech32Addr ethcommon.Address, pubKey string) *Response[bool] {
 	response := new(Response[bool])
 	response.CallMode = true
 	response.Status = Response_SUCCESS
 
-	if docResp := s.GetDocument(address); docResp.Status != Response_SUCCESS {
+	if docResp := s.GetDocument(bech32Addr); docResp.Status != Response_SUCCESS {
 		response.Msg = docResp.Msg
 		response.Status = docResp.Status
 		return response
@@ -435,12 +437,12 @@ func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyI
 	}
 }*/
 /*
-func (s *DocumentService) GetDidPublicKey(address ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey] {
+func (s *DocumentService) GetDidPublicKey(bech32Addr ethcommon.Address, pubKey string) *Response[*doc.DidPublicKey] {
 	response := new(Response[*doc.DidPublicKey])
 	response.CallMode = true
 	response.Status = Response_SUCCESS
 
-	if docResp := s.QueryDidDocument(address); docResp.Status != Response_SUCCESS {
+	if docResp := s.QueryDidDocument(bech32Addr); docResp.Status != Response_SUCCESS {
 		response.Msg = docResp.Msg
 		response.Status = docResp.Status
 		return response

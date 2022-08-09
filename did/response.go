@@ -1,7 +1,7 @@
 package did
 
 import (
-	"github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 type ResponseStatus int
@@ -18,7 +18,7 @@ type TransactionInfo struct {
 	TransactionIndex uint
 }
 
-func NewTransactionInfo(receipt *types.Receipt) TransactionInfo {
+func NewTransactionInfo(receipt *ethtypes.Receipt) TransactionInfo {
 	return TransactionInfo{
 		BlockNumber:      receipt.BlockNumber.Uint64(),
 		TxHash:           receipt.TxHash.Hex(),

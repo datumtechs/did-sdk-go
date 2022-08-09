@@ -1,4 +1,4 @@
-package vckeys
+package credentialkeys
 
 const (
 	CLAIM_DATA = "claimData"

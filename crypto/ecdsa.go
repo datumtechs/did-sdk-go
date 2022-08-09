@@ -2,7 +2,7 @@ package crypto
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
+	ethhexutl "github.com/ethereum/go-ethereum/common/hexutil"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 )
@@ -12,7 +12,7 @@ func SignSecp256k1(digest []byte, privateKey *ecdsa.PrivateKey) []byte {
 	//digestHash = SHA3(rawData)
 	sig, err := ethcrypto.Sign(digest, privateKey)
 	if err != nil {
-		log.Errorf("failed to sign credential, error: %+v", err)
+		log.WithError(err).Errorf("failed to sign credential")
 		return nil
 	}
 	return sig
@@ -22,8 +22,8 @@ func VerifySecp256k1Signature(digest []byte, signature string, publicKey *ecdsa.
 	if len(digest) == 0 || len(signature) == 0 || publicKey == nil {
 		return false
 	}
-	if signature, err := hex.DecodeString(signature); err != nil {
-		log.Errorf("failed to decode signature hex string, error: %+v", err)
+	if signature, err := ethhexutl.Decode(signature); err != nil {
+		log.WithError(err).Errorf("failed to decode signature hex:%s", signature)
 		return false
 	} else {
 		// remove recovery id (signature[64]
@@ -32,15 +32,16 @@ func VerifySecp256k1Signature(digest []byte, signature string, publicKey *ecdsa.
 	}
 }
 
+// HexToPublicKey decodes a hex string with 0x prefix as an ecdsa.PublicKey.
 func HexToPublicKey(publicKey string) *ecdsa.PublicKey {
-	if pubKey, err := hex.DecodeString(publicKey); err == nil {
+	if pubKey, err := ethhexutl.Decode(publicKey); err == nil {
 		if pk, err := ethcrypto.UnmarshalPubkey(pubKey); err == nil {
 			return pk
 		} else {
-			log.Errorf("failed to unmarshal public key, error: %+v", err)
+			log.WithError(err).Errorf("failed to unmarshal public key:%s", publicKey)
 		}
 	} else {
-		log.Errorf("failed to decode hex public key , error: %+v", err)
+		log.WithError(err).Errorf("failed to decode hex public key:%s", publicKey)
 	}
 	return nil
 }
