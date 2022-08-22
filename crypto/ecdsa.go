@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"crypto/ecdsa"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	ethhexutl "github.com/ethereum/go-ethereum/common/hexutil"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
@@ -34,14 +35,11 @@ func VerifySecp256k1Signature(digest []byte, signature string, publicKey *ecdsa.
 
 // HexToPublicKey decodes a hex string with 0x prefix as an ecdsa.PublicKey.
 func HexToPublicKey(publicKey string) *ecdsa.PublicKey {
-	if pubKey, err := ethhexutl.Decode(publicKey); err == nil {
-		if pk, err := ethcrypto.UnmarshalPubkey(pubKey); err == nil {
-			return pk
-		} else {
-			log.WithError(err).Errorf("failed to unmarshal public key:%s", publicKey)
-		}
+	pubKey := ethcommon.FromHex(publicKey)
+	if pk, err := ethcrypto.UnmarshalPubkey(pubKey); err == nil {
+		return pk
 	} else {
-		log.WithError(err).Errorf("failed to decode hex public key:%s", publicKey)
+		log.WithError(err).Errorf("failed to unmarshal public key:%s", publicKey)
 	}
 	return nil
 }
