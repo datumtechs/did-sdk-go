@@ -35,7 +35,7 @@ func NewDocumentService(ctx chainclient.Context) *DocumentService {
 	}
 	m.didContractInstance = instance
 
-	abiCode, err := abi.JSON(strings.NewReader(contracts.DidABI))
+	abiCode, err := abi.JSON(strings.NewReader(contracts.DidMetaData.ABI))
 	if err != nil {
 		log.Fatal(err)
 	}
