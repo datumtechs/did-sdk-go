@@ -35,7 +35,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	}
 	checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, req.Credential.Proof[proofkeys.VERIFICATIONMETHOD].(string), nil)
 	if checkDocResp.Status != Response_SUCCESS {
-		CopyResp(docResp, checkDocResp)
+		CopyResp(checkDocResp, response)
 		return response
 	}
 

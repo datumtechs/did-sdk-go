@@ -102,7 +102,7 @@ func (s *CredentialService) VerifyPresentation(req VerifyPresentationReq) *Respo
 	}
 	checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, req.Presentation.Proof[proofkeys.VERIFICATIONMETHOD].(string), nil)
 	if checkDocResp.Status != Response_SUCCESS {
-		CopyResp(docResp, checkDocResp)
+		CopyResp(checkDocResp, response)
 		return response
 	}
 

@@ -227,7 +227,7 @@ func (s *CredentialService) VerifyCredential(credential *types.Credential) *Resp
 	}
 	checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, credential.Proof[proofkeys.VERIFICATIONMETHOD].(string), nil)
 	if checkDocResp.Status != Response_SUCCESS {
-		CopyResp(docResp, checkDocResp)
+		CopyResp(checkDocResp, response)
 		return response
 	}
 	response.Data = s.VerifyCredentialWithPublicKey(credential, checkDocResp.Data)
