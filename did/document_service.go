@@ -1,6 +1,7 @@
 package did
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"github.com/bglmmz/chainclient"
@@ -10,7 +11,6 @@ import (
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-	ethhexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -406,8 +406,8 @@ func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyI
 	}
 
 	if privateKey != nil {
-		pubkeyHexExpected := ethhexutil.Encode(ethcrypto.FromECDSAPub(&privateKey.PublicKey))
-		if pubkeyHex != pubkeyHexExpected {
+		pubkeyBytesExpected := ethcrypto.FromECDSAPub(&privateKey.PublicKey)
+		if !bytes.Equal(ethcommon.FromHex(pubkeyHex), pubkeyBytesExpected) {
 			response.Msg = "public key in did document not consistent with the private key"
 			return response
 		}
