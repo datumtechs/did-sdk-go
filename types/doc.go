@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -73,7 +74,7 @@ type DidPublicKey struct {
 	//公钥类型
 	Type string
 	//公钥16进制字符串
-	PublicKey string
+	PublicKey string //0x prefix
 	//公钥是否撤消 0: valid; 1: invalid
 	Status PublicKeyStatus
 }
@@ -89,9 +90,9 @@ type DidDocument struct {
 	Context   string
 	Id        string
 	Version   string
-	PublicKey []*DidPublicKey
+	PublicKey []*DidPublicKey //0x prefix
 	Service   []*DidService
-	Proof     Proof
+	Proof     Proof //0x prefix
 	Created   string
 	Updated   string
 	Status    DocumentStatus
@@ -114,7 +115,8 @@ func (doc *DidDocument) IsPublicKeyIdOrPublicKeyExist(publicKeyId string, public
 		return false
 	}*/
 	for _, item := range doc.PublicKey {
-		if item.Id == publicKeyId || item.PublicKey == publicKey {
+		//if item.Id == publicKeyId || item.PublicKey == publicKey {
+		if item.Id == publicKeyId || bytes.Equal(ethcommon.FromHex(item.PublicKey), ethcommon.FromHex(publicKey)) {
 			return true
 		}
 	}
@@ -158,7 +160,8 @@ func (doc *DidDocument) FindDidPublicKeyByPublicKey(publicKeyHex string) *DidPub
 		return nil
 	}
 	for _, didPubKey := range doc.PublicKey {
-		if didPubKey.PublicKey == publicKeyHex {
+		//if didPubKey.PublicKey == publicKeyHex {
+		if bytes.Equal(ethcommon.FromHex(didPubKey.PublicKey), ethcommon.FromHex(publicKeyHex)) {
 			return didPubKey
 		}
 	}
