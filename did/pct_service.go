@@ -40,7 +40,7 @@ func NewPctService(ctx chainclient.Context) *PctService {
 }
 
 type CreatePctReq struct {
-	PrivateKey *ecdsa.PrivateKey // the private key to sign the credential
+	PrivateKey *ecdsa.PrivateKey `json:"-"` // the private key to sign the credential
 	PctJson    string
 	Extra      []byte
 }
@@ -159,8 +159,7 @@ func (s *PctService) VerifyByPct(pctId *big.Int, content map[string]interface{})
 
 	response := new(Response[bool])
 	response.CallMode = true
-	response.Status = Response_SUCCESS
-
+	response.Status = Response_FAILURE
 	response.Data = false
 
 	pctResp := s.GetPct(pctId)
@@ -172,6 +171,6 @@ func (s *PctService) VerifyByPct(pctId *big.Int, content map[string]interface{})
 	jsonSchema := pctObj.JsonSchema
 
 	response.Data = common.VerifyWithJsonSchema(jsonSchema, content)
-
+	response.Status = Response_SUCCESS
 	return response
 }

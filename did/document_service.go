@@ -46,7 +46,7 @@ func NewDocumentService(ctx chainclient.Context) *DocumentService {
 // datum 项目中，address就是carrier内置钱包地址。
 type CreateDidReq struct {
 	// Required: The private key of the signed transaction is also used to generate the corresponding public key, and the DID is generated from the public key.
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 	// Required: The public key in DID Document.
 	PublicKey string
 	// Required: The type.  (default: Secp256k1)
@@ -225,7 +225,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 
 type AddPublicKeyReq struct {
 	// Required: The private key of the signed transaction is also used to generate the corresponding public key, and the DID is generated from the public key.
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 	// Required: The public key in DID Document.
 	PublicKey string
 	// Required: The type.  (default: Secp256k1)

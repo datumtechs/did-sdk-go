@@ -119,7 +119,7 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 }
 
 type SubmitProposalReq struct {
-	PrivateKey          *ecdsa.PrivateKey // Required: The private key to sign transaction
+	PrivateKey          *ecdsa.PrivateKey `json:"-"` // Required: The private key to sign transaction
 	ProposalType        uint8
 	ProposalUrl         string
 	Candidate           ethcommon.Address
@@ -203,7 +203,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 
 type VoteProposalReq struct {
 	// Required: The private key to sign transaction
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 	ProposalId *big.Int
 }
 
@@ -274,7 +274,7 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 
 type WithdrawProposalReq struct {
 	// Required: The private key to sign transaction
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 	ProposalId *big.Int
 }
 
@@ -346,7 +346,7 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 
 type EffectProposalReq struct {
 	// Required: The private key to sign transaction
-	PrivateKey *ecdsa.PrivateKey
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 	ProposalId *big.Int
 }
 

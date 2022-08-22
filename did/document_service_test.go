@@ -42,6 +42,6 @@ func Test_createApplicantDid(t *testing.T) {
 
 func Test_QueryDidDocument(t *testing.T) {
 	setup()
-	response := didService.DocumentService.QueryDidDocument(applicantDid)
-	t.Logf("response:%+v", *response.Data)
+	response := didService.DocumentService.QueryDidDocument("did:pid:lat1wdv3hh6auk0um7yr6lsxu8rwljk8942uxezekr")
+	t.Logf("response:%+v", response.Data.PublicKey[0].PublicKey)
 }

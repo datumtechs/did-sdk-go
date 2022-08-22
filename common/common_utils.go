@@ -128,6 +128,11 @@ func MapToJson(m map[string]interface{}) string {
 	return string(dataMap)
 }
 
+func ToJson(v any) string {
+	jsonBytes, _ := json.Marshal(v)
+	return string(jsonBytes)
+}
+
 /*
 func CloneMap(src map[string]interface{}) map[string]interface{} {
 	if src == nil || len(src) == 0 {

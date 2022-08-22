@@ -16,7 +16,7 @@ import (
 
 type CreateEvidenceReq struct {
 	Credential types.Credential  // Required: the signed credential
-	PrivateKey *ecdsa.PrivateKey // Required: The private key of to sign transaction
+	PrivateKey *ecdsa.PrivateKey `json:"-"` // Required: The private key of to sign transaction
 }
 
 func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[string] {
@@ -183,7 +183,7 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 
 type RevokeEvidenceReq struct {
 	EvidenceId string            // credential digest, it is used to generate proof's signature by issuer
-	PrivateKey *ecdsa.PrivateKey // Required: The private key of to sign transaction
+	PrivateKey *ecdsa.PrivateKey `json:"-"` // Required: The private key of to sign transaction
 }
 
 func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {

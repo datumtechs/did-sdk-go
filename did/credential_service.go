@@ -55,7 +55,7 @@ type CreateCredentialReq struct {
 	Context        string
 	Type           string
 	Issuer         string            // the issuer did
-	PrivateKey     *ecdsa.PrivateKey // the private key to sign the credential
+	PrivateKey     *ecdsa.PrivateKey `json:"-"` // the private key to sign the credential
 	PublicKeyId    string            // public key identified by PublicKeyId in Did document should be consistent with PrivateKey; if req.publicKeyId is no provided, the first valid public key in Did document will be used.
 	Did            string            // the applicant, vc holder
 	PctId          *big.Int
@@ -90,6 +90,8 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 	//5. req.Claim should march the req.PctId's template
 	if !simple {
 		verifyResp := s.PctService.VerifyByPct(req.PctId, req.Claim)
+
+		log.Debugf("verifyResp: %s", common.ToJson(verifyResp))
 		if verifyResp.Status != Response_SUCCESS {
 			CopyResp(verifyResp, response)
 			return response
@@ -104,6 +106,7 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 		}
 
 		checkApplicantDidResp := s.DocumentService.isDidExist(address)
+		log.Debugf("checkApplicantDidResp: %s", common.ToJson(checkApplicantDidResp))
 		if checkApplicantDidResp.Status != Response_SUCCESS {
 			CopyResp(checkApplicantDidResp, response)
 			return response
@@ -115,13 +118,15 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 
 		//2. req.Issuer, the issuer Did document should exist and valid
 		docResp := s.DocumentService.QueryDidDocument(req.Issuer)
+		log.Debugf("docResp: %s", common.ToJson(docResp))
 		if docResp.Status != Response_SUCCESS {
 			CopyResp(docResp, response)
 			return response
 		}
 		checkDocResp := s.DocumentService.VerifyDocument(docResp.Data, req.PublicKeyId, req.PrivateKey)
+		log.Debugf("checkDocResp: %s", common.ToJson(checkDocResp))
 		if checkDocResp.Status != Response_SUCCESS {
-			CopyResp(docResp, checkDocResp)
+			CopyResp(checkDocResp, response)
 			return response
 		}
 	}

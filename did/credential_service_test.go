@@ -1,6 +1,7 @@
 package did
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
@@ -161,6 +162,34 @@ func Test_CreateCredential(t *testing.T) {
 
 }
 
+func Test_CreateCredential2(t *testing.T) {
+	setup()
+	claimVar := make(types.Claim)
+	claimVar["nodeID"] = "did:pid:lat1wdv3hh6auk0um7yr6lsxu8rwljk8942uxezekr"
+	claimVar["nodeName"] = "org_9_156"
+	claimVar["url"] = "ipfs://QmdJTKxgiVjKd4NNwhA2jgRS2JJCJ2iSxLSW7Lidc3YnGv"
+	expirationDate := "2122-08-22T07:56:47.061"
+	req := new(CreateCredentialReq)
+	req.Did = "did:pid:lat1wdv3hh6auk0um7yr6lsxu8rwljk8942uxezekr"
+	req.Context = doc_context
+	req.PctId = pctId
+	req.Claim = claimVar
+	req.ExpirationDate = expirationDate
+	req.Issuer = issuer
+	req.PrivateKey = privateKey
+	req.PublicKeyId = publicKeyId
+	req.Type = types.CREDENTIAL_TYPE_VC
+	response := didService.CredentialService.CreateCredential(*req)
+
+	/*b, _ := json.Marshal(response.Data)*/
+
+	t.Logf("response.Data:%+v", *response)
+
+	a := assert.New(t)
+	a.Equal(Response_SUCCESS, response.Status)
+
+}
+
 func Test_CreateAndVerifyVC(t *testing.T) {
 	setup()
 	t.Helper()
@@ -222,4 +251,22 @@ func Test_VerifySecp256k1Signature(t *testing.T) {
 
 	ok := crypto.VerifySecp256k1Signature(credentialHash, "0xe3a62b3a0aad740e2f8ae693a049b1f9660936c416d3037bb98ce13c61b232f849f3061d294d5276c56126dee8c19febdea6f467b452df09bdbf92644576780200", &privateKey.PublicKey)
 	t.Logf("ok:%t", ok)
+}
+
+func Test_VerifySecp256k1Signature2(t *testing.T) {
+	plain := "test"
+	reqHash := HashSHA256([]byte(plain))
+	sig := crypto.SignSecp256k1(reqHash, privateKey)
+	t.Logf("reqHash:%s", ethhexutil.Encode(reqHash))
+	t.Logf("sig:%s", ethhexutil.Encode(sig))
+
+	ok := crypto.VerifySecp256k1Signature(reqHash, ethhexutil.Encode(sig), &privateKey.PublicKey)
+	t.Logf("ok:%t", ok)
+
+}
+
+func HashSHA256(data []byte) []byte {
+	h := sha256.New()
+	h.Write(data)
+	return h.Sum(nil)
 }
