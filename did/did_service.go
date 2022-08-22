@@ -10,7 +10,7 @@ import (
 var (
 	didContractAddress        = ethcommon.HexToAddress("0x043Ed3C631c6d27fe83093E50Eb60b173939F8B3")
 	pctContractAddress        = ethcommon.HexToAddress("0xCddB173756073A6C110886a4558cA4e8841fb70F")
-	proposalContractAddress   = ethcommon.HexToAddress("0xf731e0aD6331F46BfBd06F3264C092917dE6dE2E")
+	proposalContractAddress   = ethcommon.HexToAddress("0x47c0d7D6689b55875ae75B2CF41E75400B76927F")
 	credentialContractAddress = ethcommon.HexToAddress("0x0eEf1dA46ca651F08a76dEEA49BcbAc218bD92c8")
 )
 
