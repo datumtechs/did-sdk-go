@@ -7,9 +7,12 @@ import (
 type ResponseStatus int
 
 const (
-	Response_FAILURE ResponseStatus = 0
-	Response_SUCCESS ResponseStatus = 1
-	Response_UNKNOWN ResponseStatus = 2
+	Response_FAILURE      ResponseStatus = 0
+	Response_SUCCESS      ResponseStatus = 1
+	Response_EXIST        ResponseStatus = 2
+	Response_NOT_FOUND    ResponseStatus = 3
+	Response_DEACTIVATION ResponseStatus = 3
+	Response_UNKNOWN      ResponseStatus = 4
 )
 
 type TransactionInfo struct {

@@ -73,7 +73,9 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 		return response
 	}
 	if didExistResp.Data == true {
-		response.Msg = "Did exists already, did:=" + did + " bech32Addr:" + address.String()
+		log.Errorf("Did exists, did: %s", did)
+		response.Msg = "Did exists"
+		response.Status = Response_EXIST
 		return response
 	}
 
@@ -174,6 +176,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	if blockNo == nil || blockNo.Uint64() == 0 {
 		log.WithError(err).Errorf("DID not found, bech32Addr: %s", address)
 		response.Msg = "DID not found"
+		response.Status = Response_NOT_FOUND
 		return response
 	}
 
@@ -270,7 +273,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	//to check if DID document has ths public key id already?
 	if exist := didDoc.IsPublicKeyIdOrPublicKeyExist(newPublicKeyId, req.PublicKey); exist {
 		log.Warningf("Public key or index exist: req:%+v", req)
-		response.Status = Response_FAILURE
+		response.Status = Response_EXIST
 		response.Msg = "Public key or index exist"
 		return response
 	}
@@ -368,6 +371,7 @@ func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Respo
 	//  -1：不存在
 	if status == -1 {
 		response.Msg = "did document does not exist"
+		response.Status = Response_NOT_FOUND
 		return response
 	}
 	response.Data = types.DocumentStatus(status)
@@ -382,21 +386,25 @@ func (s *DocumentService) VerifyDocument(document *types.DidDocument, publicKeyI
 
 	if document == nil {
 		response.Msg = "Did document not found"
+		response.Status = Response_NOT_FOUND
 		return response
 	}
 	if document.Status == types.DOC_DEACTIVATION {
 		response.Msg = "Did document is DEACTIVATION"
+		response.Status = Response_DEACTIVATION
 		return response
 	}
 	didPublicKey := document.FindDidPublicKeyByDidPublicKeyId(publicKeyId)
 	if didPublicKey == nil {
 		response.Msg = "public key ID not found in Did document"
+		response.Status = Response_NOT_FOUND
 		return response
 	}
 
 	var pubkeyHex string = ""
 	if didPublicKey.Status == types.PublicKey_INVALID {
 		response.Msg = "The public key corresponding to the public key ID is INVALID"
+		response.Status = Response_DEACTIVATION
 		return response
 	}
 	pubkeyHex = didPublicKey.PublicKey
