@@ -87,7 +87,7 @@ type DidService struct {
 }
 
 type DidDocument struct {
-	Context   string
+	Context   string `json:"@context"`
 	Id        string
 	Version   string
 	PublicKey []*DidPublicKey //0x prefix

@@ -45,7 +45,7 @@ func (s CredentialStatus) String() string {
 }
 
 type Credential struct {
-	Context        string            `json:"context,omitempty"`
+	Context        string            `json:"@context,omitempty"`
 	Version        string            `json:"version,omitempty"`
 	Id             string            `json:"id,omitempty"`
 	Type           []string          `json:"type,omitempty"`
