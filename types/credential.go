@@ -71,7 +71,7 @@ func (c *Credential) GetDigest(seed uint64) (credentialHash ethcommon.Hash, root
 	credMap := c.ToMap()
 	delete(credMap, credentialkeys.PROOF)
 	credMap[credentialkeys.CLAIM_DATA] = claimHash
-	return crypto.RlpSHA3(common.MapToJson(credMap)), rootHash
+	return crypto.LegacyKeccak256SHA3(common.MapToJson(credMap)), rootHash
 }
 
 // todo: convert to map by reflect

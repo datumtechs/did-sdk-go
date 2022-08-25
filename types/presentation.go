@@ -20,5 +20,5 @@ func (p *Presentation) ToRawData() string {
 }
 
 func (c *Presentation) GetDigest() ethcommon.Hash {
-	return crypto.RlpSHA3(c.ToRawData())
+	return crypto.LegacyKeccak256SHA3(c.ToRawData())
 }
