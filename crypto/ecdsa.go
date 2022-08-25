@@ -10,7 +10,7 @@ import (
 
 func SignSecp256k1(digest []byte, privateKey *ecdsa.PrivateKey) []byte {
 	//digestHash := ethcrypto.Keccak256([]byte(rawData))
-	//digestHash = SHA3(rawData)
+	//digestHash = RlpSHA3(rawData)
 	sig, err := ethcrypto.Sign(digest, privateKey)
 	if err != nil {
 		log.WithError(err).Errorf("failed to sign credential")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func Test_json_string(t *testing.T) {
@@ -62,4 +63,14 @@ func Test_VerifyInvalidJsonSchema(t *testing.T) {
 
 	a := assert.New(t)
 	a.Equal(false, result)
+}
+
+func Test_utc(t *testing.T) {
+	t.Log(FormatUTC(time.Now()))
+	t.Log(FormatUTC(time.Now().UTC()))
+	t.Log(time.Now().Format(time.RFC3339))
+
+	TIME, _ := time.ParseInLocation(time.RFC3339, "2022-08-24 15:41:08 +0800", time.UTC)
+	t.Log(TIME)
+
 }

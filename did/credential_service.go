@@ -139,7 +139,7 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 	digest, rootHash := credential.GetDigest(seed)
 
 	//fmt.Printf("sign rawData: %s\n", rawData)
-	sig := crypto.SignSecp256k1(digest, req.PrivateKey)
+	sig := crypto.SignSecp256k1(digest[:], req.PrivateKey)
 
 	//生成proof
 	proofMap := make(types.Proof)
@@ -247,5 +247,5 @@ func (s *CredentialService) VerifyCredentialWithPublicKey(credential *types.Cred
 	digest, _ := credential.GetDigest(seed)
 	//fmt.Printf("verify rawData: %s\n", rawData)
 
-	return crypto.VerifySecp256k1Signature(digest, sig, publicKey)
+	return crypto.VerifySecp256k1Signature(digest[:], sig, publicKey)
 }

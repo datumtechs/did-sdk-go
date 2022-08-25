@@ -61,8 +61,8 @@ func setup() {
 		panic(err)
 	}
 
-	digest, _ := credential.GetDigest(seed)
-	credentialHash = ethcommon.BytesToHash(digest)
+	credentialHash, _ = credential.GetDigest(seed)
+
 }
 
 func Test_CreateCredentialSimple(t *testing.T) {
@@ -249,11 +249,14 @@ func Test_VerifySecp256k1Signature(t *testing.T) {
 	pubKey := ethcrypto.FromECDSAPub(&privateKey.PublicKey)
 	t.Logf("publicKey:%s", ethhexutil.Encode(pubKey))
 
-	ok := crypto.VerifySecp256k1Signature(credentialHash, "0xe3a62b3a0aad740e2f8ae693a049b1f9660936c416d3037bb98ce13c61b232f849f3061d294d5276c56126dee8c19febdea6f467b452df09bdbf92644576780200", &privateKey.PublicKey)
+	ok := crypto.VerifySecp256k1Signature(credentialHash[:], "0xe3a62b3a0aad740e2f8ae693a049b1f9660936c416d3037bb98ce13c61b232f849f3061d294d5276c56126dee8c19febdea6f467b452df09bdbf92644576780200", &privateKey.PublicKey)
 	t.Logf("ok:%t", ok)
 }
 
 func Test_VerifySecp256k1Signature2(t *testing.T) {
+	setup()
+	t.Logf(ethcrypto.PubkeyToAddress(privateKey.PublicKey).Hex())
+
 	plain := "test"
 	reqHash := HashSHA256([]byte(plain))
 	sig := crypto.SignSecp256k1(reqHash, privateKey)

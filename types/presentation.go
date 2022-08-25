@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"github.com/datumtechs/did-sdk-go/crypto"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 type Presentation struct {
@@ -18,6 +19,6 @@ func (p *Presentation) ToRawData() string {
 	return string(b)
 }
 
-func (c *Presentation) GetDigest() []byte {
-	return crypto.SHA3(c.ToRawData())
+func (c *Presentation) GetDigest() ethcommon.Hash {
+	return crypto.RlpSHA3(c.ToRawData())
 }

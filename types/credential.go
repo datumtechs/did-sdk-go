@@ -5,6 +5,7 @@ import (
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/keys/credential"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -65,12 +66,12 @@ type CredentialWrapper struct {
 }
 
 // When seed=0, a random number will be generated as seed.
-func (c *Credential) GetDigest(seed uint64) (credentialHash []byte, rootHash string) {
+func (c *Credential) GetDigest(seed uint64) (credentialHash ethcommon.Hash, rootHash string) {
 	claimHash, rootHash := c.ClaimData.GetHash(seed)
 	credMap := c.ToMap()
 	delete(credMap, credentialkeys.PROOF)
 	credMap[credentialkeys.CLAIM_DATA] = claimHash
-	return crypto.SHA3(common.MapToJson(credMap)), rootHash
+	return crypto.RlpSHA3(common.MapToJson(credMap)), rootHash
 }
 
 // todo: convert to map by reflect

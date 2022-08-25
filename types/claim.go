@@ -30,7 +30,7 @@ func (c Claim) GetHash(seed uint64) (claimDigest string, rootHash string) {
 	//json.Marshal会对key按字典顺序排列
 	claimRawData, _ := json.Marshal(newClaim)
 	//fmt.Printf("claimRawdata:%s\n", claimRawData)
-	return crypto.SHA3Hex(string(claimRawData)), crypto.SHA3Hex(allNewValueHashesBuilder.String())
+	return crypto.RlpSHA3Hex(string(claimRawData)), crypto.RlpSHA3Hex(allNewValueHashesBuilder.String())
 }
 
 func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, builder *strings.Builder) {
@@ -52,7 +52,7 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 				seed = common.GetHash(seed)
 				newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
 				claimMapSalt[key] = newValue
-				builder.WriteString(crypto.SHA3Hex(newValue))
+				builder.WriteString(crypto.RlpSHA3Hex(newValue))
 				builder.WriteString(" ")
 			}
 		} else {
@@ -63,7 +63,7 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 			newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
 			//fmt.Printf("claim key:%s newValue:=%s\n", key, newValue)
 			claimMapSalt[key] = newValue
-			builder.WriteString(crypto.SHA3Hex(newValue))
+			builder.WriteString(crypto.RlpSHA3Hex(newValue))
 			builder.WriteString(" ")
 		}
 	}
@@ -126,7 +126,7 @@ func SplitForMap(originalClaim, disclosureMap Claim, seed []byte) error {
 
 				disclosedValueJson, _ := json.Marshal(disclosedValue)
 				if string(disclosedValueJson) == "0" { //不披露
-					originalClaim[key] = crypto.SHA3Hex(newValue)
+					originalClaim[key] = crypto.RlpSHA3Hex(newValue)
 				}
 			}
 		} else {
@@ -138,7 +138,7 @@ func SplitForMap(originalClaim, disclosureMap Claim, seed []byte) error {
 
 			disclosedValueJson, _ := json.Marshal(disclosedValue)
 			if string(disclosedValueJson) == "0" { //不披露
-				originalClaim[key] = crypto.SHA3Hex(newValue)
+				originalClaim[key] = crypto.RlpSHA3Hex(newValue)
 			}
 		}
 	}

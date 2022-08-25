@@ -57,10 +57,9 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	}
 
 	digest, _ := req.Credential.GetDigest(seed)
-	digest32 := ethcommon.BytesToHash(digest)
 
 	// prepare parameters for createCredential()
-	input, err := PackAbiInput(s.abi, "createCredential", digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
+	input, err := PackAbiInput(s.abi, "createCredential", digest, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to pack input data, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to pack input data"
@@ -89,7 +88,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	}
 
 	// call contract CreatePid()
-	tx, err := s.credentialContractInstance.CreateCredential(opts, digest32, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
+	tx, err := s.credentialContractInstance.CreateCredential(opts, digest, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to call contract, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to call contract"
@@ -111,7 +110,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	// 交易信息
 	response.TxInfo = NewTransactionInfo(receipt)
 	response.Status = Response_SUCCESS
-	response.Data = digest32.Hex()
+	response.Data = digest.Hex()
 	return response
 }
 
@@ -301,9 +300,8 @@ func (s *CredentialService) VerifyCredentialEvidence(req VerifyCredentialEvidenc
 		return response
 	}
 
-	credentialHashSlice, _ := req.Credential.GetDigest(seed)
+	credentialHash, _ := req.Credential.GetDigest(seed)
 
-	credentialHash := ethcommon.BytesToHash(credentialHashSlice)
 	status, err := s.credentialContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
 		log.WithError(err).Errorf("VerifyCredentialEvidence: failed to get latest block), evidenceId: %s", credentialHash.Hex())

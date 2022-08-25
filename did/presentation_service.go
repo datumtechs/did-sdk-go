@@ -61,7 +61,7 @@ func (s *CredentialService) CreatePresentation(req CreatePresentationReq) *Respo
 	presentation.Type = []string{types.CREDENTIAL_TYPE_VP}
 	presentation.VerifiableCredential = req.Credential
 	digest := presentation.GetDigest()
-	sig := crypto.SignSecp256k1(digest, req.Authentication.IssuerPrivateKey)
+	sig := crypto.SignSecp256k1(digest[:], req.Authentication.IssuerPrivateKey)
 
 	//生成proof
 	now := time.Now().UTC()
@@ -106,7 +106,8 @@ func (s *CredentialService) VerifyPresentation(req VerifyPresentationReq) *Respo
 		return response
 	}
 
-	ok := crypto.VerifySecp256k1Signature(req.Presentation.GetDigest(), req.Presentation.Proof[proofkeys.JWS].(string), checkDocResp.Data)
+	digest := req.Presentation.GetDigest()
+	ok := crypto.VerifySecp256k1Signature(digest[:], req.Presentation.Proof[proofkeys.JWS].(string), checkDocResp.Data)
 	if !ok {
 		response.Msg = "failed to verify presentation proof"
 		return response
