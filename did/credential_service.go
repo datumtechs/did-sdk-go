@@ -136,10 +136,10 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 	//credentialWrapper := new(vc.CredentialWrapper)
 	credential := generateCredential(req)
 
-	digest, rootHash := credential.GetDigest(seed)
+	credentialHash, claimRootHash := credential.GetHash(seed)
 
 	//fmt.Printf("sign rawData: %s\n", rawData)
-	sig := crypto.SignSecp256k1(digest[:], req.PrivateKey)
+	sig := crypto.SignSecp256k1(credentialHash[:], req.PrivateKey)
 
 	//生成proof
 	proofMap := make(types.Proof)
@@ -147,7 +147,7 @@ func (s *CredentialService) doCreateCredential(req CreateCredentialReq, simple b
 	proofMap[proofkeys.TYPE] = algorithm.ALGO_SECP256K1
 	proofMap[proofkeys.JWS] = ethhexutil.Encode(sig)
 	proofMap[proofkeys.VERIFICATIONMETHOD] = req.PublicKeyId
-	proofMap[proofkeys.CLAIM_ROOT_HASH] = rootHash
+	proofMap[proofkeys.CLAIM_ROOT_HASH] = claimRootHash
 	proofMap[proofkeys.SEED] = strconv.FormatUint(seed, 10)
 	credential.Proof = proofMap
 
@@ -244,8 +244,8 @@ func (s *CredentialService) VerifyCredentialWithPublicKey(credential *types.Cred
 		return false
 	}
 
-	digest, _ := credential.GetDigest(seed)
+	credentialHash, _ := credential.GetHash(seed)
 	//fmt.Printf("verify rawData: %s\n", rawData)
 
-	return crypto.VerifySecp256k1Signature(digest[:], sig, publicKey)
+	return crypto.VerifySecp256k1Signature(credentialHash[:], sig, publicKey)
 }

@@ -18,20 +18,28 @@ const (
 
 type Claim map[string]interface{}
 
-//
-func (c Claim) GetHash(seed uint64) (claimDigest string, rootHash string) {
+func (c Claim) GetSaltedHash(seed uint64) (claimDigest string, claimRootHash string) {
+	// 保证不影响源claim
 	newClaim := common.Clone(c)
-	//对claim进行加盐，并计算ClaimRootHash
-	//为claim的有效key，生成新newValue:= json(original_value)+string(hash(seed))
-	//并hash(newValue).hex(), 写入builder
+	// 保存每个newValue
 	allNewValueHashesBuilder := strings.Builder{}
+
+	// 生成盐，并处理新值
 	GenerateClaimSaltForMap(newClaim, common.Uint64ToBigEndianBytes(seed), &allNewValueHashesBuilder)
 
-	//json.Marshal会对key按字典顺序排列
+	// 计算加盐后的新claim的hash
+	// json.Marshal会对key按字典顺序排列
 	claimRawData, _ := json.Marshal(newClaim)
-	return crypto.LegacyKeccak256SHA3Hex(string(claimRawData)), crypto.LegacyKeccak256SHA3Hex(allNewValueHashesBuilder.String())
+	claimDigest = crypto.LegacyKeccak256SHA3Hex(string(claimRawData))
+	// 计算claimRootHash
+	// claimRootHash= hash(allNewValueHashes)
+	claimRootHash = crypto.LegacyKeccak256SHA3Hex(allNewValueHashesBuilder.String())
+	return
 }
 
+// 对newClaim中每个key进行处理，生成新的value
+// newValue = hash(json(original_value)+string(hash(seed))).hex(),
+// 并把每个newValue写入allNewValueHashesBuilder
 func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, builder *strings.Builder) {
 	var keys []string
 	for key := range claimMapSalt {
@@ -50,16 +58,18 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 				vJson, _ := json.Marshal(v)
 				seed = common.GetHash(seed)
 				newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
-				claimMapSalt[key] = newValue
-				builder.WriteString(crypto.LegacyKeccak256SHA3Hex(newValue))
+				newValueHash := crypto.LegacyKeccak256SHA3Hex(newValue)
+				claimMapSalt[key] = newValueHash
+				builder.WriteString(newValueHash)
 			}
 		} else {
 			//替换value= json(value)+salt
 			vJson, _ := json.Marshal(v)
 			seed = common.GetHash(seed)
 			newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
-			claimMapSalt[key] = newValue
-			builder.WriteString(crypto.LegacyKeccak256SHA3Hex(newValue))
+			newValueHash := crypto.LegacyKeccak256SHA3Hex(newValue)
+			claimMapSalt[key] = newValueHash
+			builder.WriteString(newValueHash)
 		}
 	}
 }

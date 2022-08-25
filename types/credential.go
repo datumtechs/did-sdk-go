@@ -66,12 +66,12 @@ type CredentialWrapper struct {
 }
 
 // When seed=0, a random number will be generated as seed.
-func (c *Credential) GetDigest(seed uint64) (credentialHash ethcommon.Hash, rootHash string) {
-	claimHash, rootHash := c.ClaimData.GetHash(seed)
+func (c *Credential) GetHash(seed uint64) (credentialHash ethcommon.Hash, claimRootHash string) {
+	_claimSaltedHash, _claimRootHash := c.ClaimData.GetSaltedHash(seed)
 	credMap := c.ToMap()
 	delete(credMap, credentialkeys.PROOF)
-	credMap[credentialkeys.CLAIM_DATA] = claimHash
-	return crypto.LegacyKeccak256SHA3(common.MapToJson(credMap)), rootHash
+	credMap[credentialkeys.CLAIM_DATA] = _claimSaltedHash
+	return crypto.LegacyKeccak256SHA3(common.MapToJson(credMap)), _claimRootHash
 }
 
 // todo: convert to map by reflect

@@ -61,7 +61,7 @@ func setup() {
 		panic(err)
 	}
 
-	credentialHash, _ = credential.GetDigest(seed)
+	credentialHash, _ = credential.GetHash(seed)
 
 }
 
@@ -165,12 +165,12 @@ func Test_CreateCredential(t *testing.T) {
 func Test_CreateCredential2(t *testing.T) {
 	setup()
 	claimVar := make(types.Claim)
-	claimVar["nodeID"] = "did:pid:lat1wdv3hh6auk0um7yr6lsxu8rwljk8942uxezekr"
+	claimVar["nodeID"] = "did:pid:lat1cq9svdd8vc83u74relncn6cyxywr5mjqccqlea"
 	claimVar["nodeName"] = "org_9_156"
 	claimVar["url"] = "ipfs://QmdJTKxgiVjKd4NNwhA2jgRS2JJCJ2iSxLSW7Lidc3YnGv"
 	expirationDate := "2122-08-22T07:56:47.061"
 	req := new(CreateCredentialReq)
-	req.Did = "did:pid:lat1wdv3hh6auk0um7yr6lsxu8rwljk8942uxezekr"
+	req.Did = "did:pid:lat1cq9svdd8vc83u74relncn6cyxywr5mjqccqlea"
 	req.Context = doc_context
 	req.PctId = pctId
 	req.Claim = claimVar
@@ -194,10 +194,10 @@ func Test_CreateAndVerifyVC(t *testing.T) {
 	setup()
 	t.Helper()
 	claimVar := make(types.Claim)
-	claimVar["nodeID"] = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	claimVar["nodeName"] = "The PlatON Node"
-	claimVar["url"] = "http://www.platon.network"
-	expirationDate := "2029-07-06-18T21:19:10"
+	claimVar["nodeID"] = "did:pid:lat1cq9svdd8vc83u74relncn6cyxywr5mjqccqlea"
+	claimVar["nodeName"] = "org_9_156"
+	claimVar["url"] = "ipfs://QmdJTKxgiVjKd4NNwhA2jgRS2JJCJ2iSxLSW7Lidc3YnGv"
+	expirationDate := "2122-08-22T07:56:47.061"
 
 	req := new(CreateCredentialReq)
 	req.Did = applicantDid
@@ -244,7 +244,7 @@ func Test_VerifySecp256k1Signature(t *testing.T) {
 	setup()
 	t.Helper()
 	seed, _ := credential.Proof.GetSeed()
-	credentialHash, _ := credential.GetDigest(seed)
+	credentialHash, _ := credential.GetHash(seed)
 
 	pubKey := ethcrypto.FromECDSAPub(&privateKey.PublicKey)
 	t.Logf("publicKey:%s", ethhexutil.Encode(pubKey))

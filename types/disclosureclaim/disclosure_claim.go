@@ -22,7 +22,7 @@ type DisclosureClaim map[string]interface{}
 
 }*/
 /*
-func (c Claim) GetHash(disclosures map[string]int) string {
+func (c Claim) GetSaltedHash(disclosures map[string]int) string {
 	if disclosures == nil {
 		disclosures = make(map[string]int)
 	}

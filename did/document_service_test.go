@@ -19,7 +19,7 @@ func Test_createIssuerDid(t *testing.T) {
 	t.Logf("response.data:%+v", response.Data)
 
 	a := assert.New(t)
-	if a.Contains(response.Msg, "Did exists already") || a.Equal(Response_SUCCESS, response.Status) {
+	if a.Contains(response.Msg, "Did exists") || a.Equal(Response_SUCCESS, response.Status) {
 		docResponse := didService.DocumentService.QueryDidDocument(response.Data)
 		t.Logf("response.Data:%+v", *docResponse.Data)
 		t.Logf("pubkey:%+v", *docResponse.Data.PublicKey[0])
@@ -36,7 +36,7 @@ func Test_createApplicantDid(t *testing.T) {
 	t.Logf("response.data:%+v", response.Data)
 
 	a := assert.New(t)
-	if a.Contains(response.Msg, "Did exists already") || a.Equal(Response_SUCCESS, response.Status) {
+	if a.Contains(response.Msg, "Did exists") || a.Equal(Response_SUCCESS, response.Status) {
 		docResponse := didService.DocumentService.QueryDidDocument(response.Data)
 		t.Logf("response.Data:%+v", *docResponse.Data)
 		t.Logf("pubkey:%+v", *docResponse.Data.PublicKey[0])
