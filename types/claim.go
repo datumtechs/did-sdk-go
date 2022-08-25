@@ -29,7 +29,6 @@ func (c Claim) GetHash(seed uint64) (claimDigest string, rootHash string) {
 
 	//json.Marshal会对key按字典顺序排列
 	claimRawData, _ := json.Marshal(newClaim)
-	//fmt.Printf("claimRawdata:%s\n", claimRawData)
 	return crypto.LegacyKeccak256SHA3Hex(string(claimRawData)), crypto.LegacyKeccak256SHA3Hex(allNewValueHashesBuilder.String())
 }
 
@@ -53,18 +52,14 @@ func GenerateClaimSaltForMap(claimMapSalt map[string]interface{}, seed []byte, b
 				newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
 				claimMapSalt[key] = newValue
 				builder.WriteString(crypto.LegacyKeccak256SHA3Hex(newValue))
-				builder.WriteString(" ")
 			}
 		} else {
 			//替换value= json(value)+salt
-			//vJson, _ := json.Marshal(v)
 			vJson, _ := json.Marshal(v)
 			seed = common.GetHash(seed)
 			newValue := string(vJson) + strconv.FormatUint(common.BigEndianBytesToUint64(seed), 10)
-			//fmt.Printf("claim key:%s newValue:=%s\n", key, newValue)
 			claimMapSalt[key] = newValue
 			builder.WriteString(crypto.LegacyKeccak256SHA3Hex(newValue))
-			builder.WriteString(" ")
 		}
 	}
 }
