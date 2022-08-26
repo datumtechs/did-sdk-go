@@ -19,21 +19,23 @@ import (
 )
 
 type DocumentService struct {
-	ctx                 chainclient.Context
-	abi                 abi.ABI
-	didContractInstance *contracts.Did
+	ctx                      chainclient.Context
+	abi                      abi.ABI
+	documentContractInstance *contracts.Did
+	documentContractProxy    ethcommon.Address
 }
 
-func NewDocumentService(ctx chainclient.Context) *DocumentService {
+func NewDocumentService(ctx chainclient.Context, config *Config) *DocumentService {
 	log.Info("Init Document service ...")
 	m := new(DocumentService)
 	m.ctx = ctx
+	m.documentContractProxy = config.DocumentContractProxy
 
-	instance, err := contracts.NewDid(didContractAddress, ctx.GetClient())
+	instance, err := contracts.NewDid(m.documentContractProxy, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
-	m.didContractInstance = instance
+	m.documentContractInstance = instance
 
 	abiCode, err := abi.JSON(strings.NewReader(contracts.DidMetaData.ABI))
 	if err != nil {
@@ -100,7 +102,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.documentContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("failed to estimate gas for CreateDid(),PublicKey:%s", req.PublicKey)
 		response.Msg = "failed to estimate gas"
@@ -117,7 +119,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	}
 
 	// call contract CreateDid()
-	tx, err := s.didContractInstance.CreateDid(opts, createTime, publicKeyAsInput, updateTime)
+	tx, err := s.documentContractInstance.CreateDid(opts, createTime, publicKeyAsInput, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call CreateDid(), PublicKey: %s", publicKeyAsInput)
 		response.Msg = "failed to call contract"
@@ -167,7 +169,7 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	blockNo, err := s.didContractInstance.GetLatestBlock(nil, address)
+	blockNo, err := s.documentContractInstance.GetLatestBlock(nil, address)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call GetLatestBlock(), bech32Addr: %s", address)
 		response.Msg = "failed to get latest block of DID"
@@ -199,9 +201,9 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	prevBlock := blockNo
 	log.Debugf("blockNumber:%d", prevBlock.Uint64())
 	for prevBlock.Uint64() > 0 {
-		logs := s.ctx.GetLog(timeoutCtx, didContractAddress, prevBlock)
+		logs := s.ctx.GetLog(timeoutCtx, s.documentContractProxy, prevBlock)
 		for _, eachLog := range logs {
-			event, err := s.didContractInstance.ParseDIDAttributeChange(eachLog)
+			event, err := s.documentContractInstance.ParseDIDAttributeChange(eachLog)
 			if err != nil {
 				response.Msg = "failed to parse contract event"
 				return response
@@ -296,7 +298,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, didContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.documentContractProxy, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for SetAttribute(): %s, bech32Addr: %v", address, err)
 		response.Status = Response_FAILURE
@@ -309,7 +311,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 
 	// call contract SetAttribute()
-	tx, err := s.didContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
+	tx, err := s.documentContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call SetAttribute(), bech32Addr: %s", address)
 		response.Status = Response_FAILURE
@@ -346,7 +348,7 @@ func (s *DocumentService) isDidExist(address ethcommon.Address) *Response[bool] 
 	response := new(Response[bool])
 	response.CallMode = true
 
-	existing, err := s.didContractInstance.IsIdentityExist(nil, address)
+	existing, err := s.documentContractInstance.IsIdentityExist(nil, address)
 	if err != nil {
 		response.Msg = "failed to check if did exist"
 		response.Status = Response_FAILURE
@@ -362,7 +364,7 @@ func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Respo
 	response.CallMode = true
 	response.Status = Response_FAILURE
 
-	status, err := s.didContractInstance.GetStatus(nil, address)
+	status, err := s.documentContractInstance.GetStatus(nil, address)
 	if err != nil {
 		log.WithError(err).Errorf("failed to find did document status,bech32Addr:%s", address)
 		response.Msg = "failed to find did document status"

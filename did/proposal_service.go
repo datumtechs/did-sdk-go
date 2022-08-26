@@ -18,14 +18,16 @@ type ProposalService struct {
 	ctx                      chainclient.Context
 	abi                      abi.ABI
 	proposalContractInstance *contracts.Proposal
+	proposalContractProxy    ethcommon.Address
 }
 
-func NewProposalService(ctx chainclient.Context) *ProposalService {
+func NewProposalService(ctx chainclient.Context, config *Config) *ProposalService {
 	log.Info("Init Proposal Service ...")
 	m := new(ProposalService)
 	m.ctx = ctx
+	m.proposalContractProxy = config.ProposalContractProxy
 
-	instance, err := contracts.NewProposal(proposalContractAddress, ctx.GetClient())
+	instance, err := contracts.NewProposal(m.proposalContractProxy, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -149,7 +151,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for submitProposal(), error: %+v", err)
 		response.Msg = "failed to estimate gas"
@@ -230,7 +232,7 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("failed to estimate gas for VoteProposal(),proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
@@ -301,7 +303,7 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("failed toto estimate gas for WithdrawProposal(),proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
@@ -374,7 +376,7 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("EffectProposal: failed to estimate gas,proposalId:%d", req.ProposalId)
 		response.Status = Response_FAILURE
@@ -511,7 +513,7 @@ func (s *ProposalService) ResetInterval(req ResetIntervalReq) *Response[bool] {
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, proposalContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("ResetInterval: failed to estimate gas,IntervalType:%d", req.IntervalType)
 		response.Status = Response_FAILURE

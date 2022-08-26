@@ -40,12 +40,19 @@ var credential types.Credential
 var vc = "{\"context\":\"http://datumtech.com/did/v1\",\"version\":\"1.0.0\",\"id\":\"a4a47370-a75b-41fb-bd87-0c823a72be07\",\"type\":[\"VerifiableCredential\"],\"issuer\":\"did:pid:lat1d7zjh2vx8xsqrgc4qe0v4usxn368naxvlpu70r\",\"issuanceDate\":\"2022-08-09T04:06:26.901\",\"expirationDate\":\"2029-07-06-18T21:19:10\",\"claimData\":{\"nodeID\":\"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"nodeName\":\"The PlatON Node\",\"url\":\"http://www.platon.network\"},\"claimMeta\":{\"pctId\":\"1000\"},\"proof\":{\"claimRootHash\":\"0x7d17357718f54ff5df50b087f6e95adae5e20cb54365b11c0c332667f1bc7eca\",\"created\":\"2022-08-09T04:06:26.901\",\"jws\":\"0xe3a62b3a0aad740e2f8ae693a049b1f9660936c416d3037bb98ce13c61b232f849f3061d294d5276c56126dee8c19febdea6f467b452df09bdbf92644576780200\",\"seed\":\"9828766684487745566\",\"type\":\"Secp256k1\",\"verificationMethod\":\"did:pid:lat1d7zjh2vx8xsqrgc4qe0v4usxn368naxvlpu70r#keys-1\"},\"holder\":\"did:pid:lat1cq9svdd8vc83u74relncn6cyxywr5mjqccqlea\"}"
 var credentialHash ethcommon.Hash
 
+var config = &Config{
+	DocumentContractProxy:   ethcommon.HexToAddress("0x279167d9767b10CEF88b9a81D9C912e475c0B75b"),
+	PctContractProxy:        ethcommon.HexToAddress("0xFa2A71584740c749F1EF055741140833534504CD"),
+	ProposalContractProxy:   ethcommon.HexToAddress("0x857027b23F73F5823984d90550A39cAA6FA43A11"),
+	CredentialContractProxy: ethcommon.HexToAddress("0x6Afe474d2201525558b50D5D5a8544e88d222E05"),
+}
+
 func setup() {
 	fmt.Println("initing........")
 	InitMockWallet()
 	MockWalletInstance().SetPrivateKey(privateKey)
 	ethcontext := chainclient.NewEthClientContext("ws://8.219.126.197:6790", "lat", MockWalletInstance())
-	didService = NewDIDService(ethcontext)
+	didService = NewDIDService(ethcontext, config)
 	fmt.Println("publicKey:" + publicKey)
 	fmt.Println("bech32Addr:" + bech32Addr.String())
 	//publicKeyId = did + "#keys-1"

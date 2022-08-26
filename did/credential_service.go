@@ -26,18 +26,21 @@ type CredentialService struct {
 	ctx                        chainclient.Context
 	abi                        abi.ABI
 	credentialContractInstance *contracts.Credential
+	credentialContractProxy    ethcommon.Address
 	DocumentService            *DocumentService
 	PctService                 *PctService
 }
 
-func NewCredentialService(ctx chainclient.Context, documentService *DocumentService, pctService *PctService) *CredentialService {
+func NewCredentialService(ctx chainclient.Context, config *Config, documentService *DocumentService, pctService *PctService) *CredentialService {
 	log.Info("Init Credential Service ...")
 	m := new(CredentialService)
 	m.ctx = ctx
+	m.credentialContractProxy = config.CredentialContractProxy
+
 	m.DocumentService = documentService
 	m.PctService = pctService
 
-	instance, err := contracts.NewCredential(credentialContractAddress, ctx.GetClient())
+	instance, err := contracts.NewCredential(m.credentialContractProxy, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}

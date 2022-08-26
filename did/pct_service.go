@@ -8,6 +8,7 @@ import (
 	"github.com/datumtechs/did-sdk-go/contracts"
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
 	"math/big"
 	"strings"
@@ -18,14 +19,16 @@ type PctService struct {
 	ctx                 chainclient.Context
 	abi                 abi.ABI
 	pctContractInstance *contracts.Pct
+	pctContractProxy    ethcommon.Address
 }
 
-func NewPctService(ctx chainclient.Context) *PctService {
+func NewPctService(ctx chainclient.Context, config *Config) *PctService {
 	log.Info("Init Pct Service ...")
 	m := new(PctService)
 	m.ctx = ctx
+	m.pctContractProxy = config.ProposalContractProxy
 
-	instance, err := contracts.NewPct(pctContractAddress, ctx.GetClient())
+	instance, err := contracts.NewPct(m.pctContractProxy, ctx.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +73,7 @@ func (s *PctService) RegisterPct(req CreatePctReq) *Response[string] { // init t
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, pctContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.pctContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("failed to estimate gas for registerPct(), pct:%s", req.PctJson)
 		response.Msg = "failed to estimate gas"

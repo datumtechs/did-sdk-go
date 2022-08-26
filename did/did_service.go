@@ -7,32 +7,43 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	didContractAddress        = ethcommon.HexToAddress("0x279167d9767b10CEF88b9a81D9C912e475c0B75b")
-	pctContractAddress        = ethcommon.HexToAddress("0xFa2A71584740c749F1EF055741140833534504CD")
-	proposalContractAddress   = ethcommon.HexToAddress("0x857027b23F73F5823984d90550A39cAA6FA43A11")
-	credentialContractAddress = ethcommon.HexToAddress("0x6Afe474d2201525558b50D5D5a8544e88d222E05")
+/*var (
+	documentContractProxy   = ethcommon.HexToAddress("0x279167d9767b10CEF88b9a81D9C912e475c0B75b")
+	pctContractProxy        = ethcommon.HexToAddress("0xFa2A71584740c749F1EF055741140833534504CD")
+	proposalContractProxy   = ethcommon.HexToAddress("0x857027b23F73F5823984d90550A39cAA6FA43A11")
+	credentialContractProxy = ethcommon.HexToAddress("0x6Afe474d2201525558b50D5D5a8544e88d222E05")
 )
+*/
+type Config struct {
+	DocumentContractProxy   ethcommon.Address
+	PctContractProxy        ethcommon.Address
+	ProposalContractProxy   ethcommon.Address
+	CredentialContractProxy ethcommon.Address
+}
 
 func PackAbiInput(abi abi.ABI, method string, params ...interface{}) ([]byte, error) {
 	return abi.Pack(method, params...)
 }
 
 type DIDService struct {
+	Config            *Config
 	DocumentService   *DocumentService
 	PctService        *PctService
 	ProposalService   *ProposalService
 	CredentialService *CredentialService
 }
 
-func NewDIDService(ctx chainclient.Context) *DIDService {
+func NewDIDService(ctx chainclient.Context, config *Config) *DIDService {
 	log.Info("Init DID service ...")
 
 	didService := new(DIDService)
-	didService.DocumentService = NewDocumentService(ctx)
-	didService.PctService = NewPctService(ctx)
-	didService.ProposalService = NewProposalService(ctx)
-	didService.CredentialService = NewCredentialService(ctx, didService.DocumentService, didService.PctService)
+
+	didService.Config = config
+
+	didService.DocumentService = NewDocumentService(ctx, config)
+	didService.PctService = NewPctService(ctx, config)
+	didService.ProposalService = NewProposalService(ctx, config)
+	didService.CredentialService = NewCredentialService(ctx, config, didService.DocumentService, didService.PctService)
 	return didService
 }
 

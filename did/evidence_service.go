@@ -71,7 +71,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, credentialContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.credentialContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to estimate gas, credential ID:%s", req.Credential.Id)
 		response.Msg = "failed to estimate gas"
@@ -156,7 +156,7 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 
 	prevBlock := blockNo
 	for prevBlock.Uint64() > 0 {
-		logs := s.ctx.GetLog(timeoutCtx, credentialContractAddress, prevBlock)
+		logs := s.ctx.GetLog(timeoutCtx, s.credentialContractProxy, prevBlock)
 		for _, eachLog := range logs {
 			event, err := s.credentialContractInstance.ParseCredentialAttributeChange(eachLog)
 			if err != nil {
@@ -222,7 +222,7 @@ func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool
 	defer cancelFn()
 
 	// 估算gas
-	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, credentialContractAddress, input)
+	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.credentialContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to estimate gas, evidenceId:%s", req.EvidenceId)
 		response.Status = Response_FAILURE
