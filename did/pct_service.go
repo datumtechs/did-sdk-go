@@ -26,7 +26,7 @@ func NewPctService(ctx chainclient.Context, config *Config) *PctService {
 	log.Info("Init Pct Service ...")
 	m := new(PctService)
 	m.ctx = ctx
-	m.pctContractProxy = config.ProposalContractProxy
+	m.pctContractProxy = config.PctContractProxy
 
 	instance, err := contracts.NewPct(m.pctContractProxy, ctx.GetClient())
 	if err != nil {
