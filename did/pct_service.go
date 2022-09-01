@@ -49,6 +49,8 @@ type CreatePctReq struct {
 }
 
 func (s *PctService) RegisterPct(req CreatePctReq) *Response[string] { // init the result
+	log.Debugf("RegisterPct: req.pctJson:%s", req.PctJson)
+
 	response := new(Response[string])
 	response.CallMode = false
 	response.Status = Response_FAILURE
@@ -63,7 +65,7 @@ func (s *PctService) RegisterPct(req CreatePctReq) *Response[string] { // init t
 
 	input, err := PackAbiInput(s.abi, "registerPct", req.PctJson, req.Extra)
 	if err != nil {
-		log.WithError(err).Errorf("failed topack input data for registerPct(), pct:%s", req.PctJson)
+		log.WithError(err).Errorf("RegisterPct: failed topack input data, pct:%s", req.PctJson)
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -75,8 +77,8 @@ func (s *PctService) RegisterPct(req CreatePctReq) *Response[string] { // init t
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.pctContractProxy, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for registerPct(), pct:%s", req.PctJson)
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Errorf("RegisterPct: failed to estimate gas, pct:%s", req.PctJson)
+		response.Msg = err.Error()
 		return response
 	}
 
@@ -84,19 +86,19 @@ func (s *PctService) RegisterPct(req CreatePctReq) *Response[string] { // init t
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for registerPct(), pct:%s", req.PctJson)
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Errorf("RegisterPct: failed to build TxOpts, pct:%s", req.PctJson)
+		response.Msg = "failed to build TxOpts"
 		return response
 	}
 
 	// call contract CreateDid()
 	tx, err := s.pctContractInstance.RegisterPct(opts, req.PctJson, req.Extra)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call registerPct(), pct:%s", req.PctJson)
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("RegisterPct: failed to call contract, pct:%s", req.PctJson)
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("call registerPct() txHash:%s, pct:%s", tx.Hash().Hex(), req.PctJson)
+	log.Debugf("RegisterPct: call contract, txHash:%s, pct:%s", tx.Hash().Hex(), req.PctJson)
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms

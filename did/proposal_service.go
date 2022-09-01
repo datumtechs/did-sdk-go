@@ -98,14 +98,14 @@ func (s *ProposalService) GetAllAuthority() *Response[[]types.Authority] {
 
 	addressList, urlList, _, err := s.proposalContractInstance.GetAllAuthority(nil)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call GetAllAuthority(), error: %+v", err)
+		log.WithError(err).Error("failed to call GetAllAuthority()")
 
 		response.Msg = "failed to call contract"
 		return response
 	}
 
 	if len(addressList) != len(urlList) {
-		log.WithError(err).Errorf("data returned from GetAllAuthority() error")
+		log.WithError(err).Error("data returned from GetAllAuthority() error")
 		response.Msg = "data returned from contract error"
 		return response
 	}
@@ -141,7 +141,7 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 	// prepare parameters for submitProposal()
 	input, err := PackAbiInput(s.abi, "submitProposal", req.ProposalType, req.ProposalUrl, req.Candidate, req.CandidateServiceUrl)
 	if err != nil {
-		log.Errorf("failed to pack input data for submitProposal(), error: %+v", err)
+		log.WithError(err).Errorf("SubmitProposal: failed to pack input data, candidateAddr:%s", req.Candidate.Hex())
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -153,23 +153,28 @@ func (s *ProposalService) SubmitProposal(req SubmitProposalReq) *Response[string
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
-		log.Errorf("failed to estimate gas for submitProposal(), error: %+v", err)
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Errorf("SubmitProposal: failed to estimate gas, candidateAddr:%s", req.Candidate.Hex())
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
+	if err != nil {
+		log.WithError(err).Error("SubmitProposal: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 
 	// call contract SubmitProposal()
 	tx, err := s.proposalContractInstance.SubmitProposal(opts, req.ProposalType, req.ProposalUrl, req.Candidate, req.CandidateServiceUrl)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call submitProposal(), error: %+v", err)
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("SubmitProposal: failed to call contract, candidateAddr:%s", req.Candidate.Hex())
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("call submitProposal() txHash: %s", tx.Hash().Hex())
+	log.Debugf("SubmitProposal: call contact, txHash: %s", tx.Hash().Hex())
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
@@ -222,7 +227,7 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	// prepare parameters for submitProposal()
 	input, err := PackAbiInput(s.abi, "voteProposal", req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to pack input data for VoteProposal(),proposalId:%d", req.ProposalId)
+		log.WithError(err).Errorf("VoteProposal: failed to pack input data,proposalId:%d", req.ProposalId)
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -234,9 +239,8 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for VoteProposal(),proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Errorf("VoteProposal: failed to estimate gas,proposalId:%d", req.ProposalId)
+		response.Msg = err.Error()
 		return response
 	}
 
@@ -247,12 +251,11 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 	// call contract VoteProposal()
 	tx, err := s.proposalContractInstance.VoteProposal(opts, req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call VoteProposal(),proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("VoteProposal: failed to call contact,proposalId:%d", req.ProposalId)
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("call VoteProposal() proposalId:%d txHash: %s", req.ProposalId, tx.Hash().Hex())
+	log.Debugf("VoteProposal: call contract, proposalId:%d txHash: %s", req.ProposalId, tx.Hash().Hex())
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
 	if nil == receipt {
@@ -263,7 +266,6 @@ func (s *ProposalService) VoteProposal(req VoteProposalReq) *Response[bool] {
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 		return response
 	}
@@ -293,8 +295,7 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 	// prepare parameters for WithdrawProposal()
 	input, err := PackAbiInput(s.abi, "withdrawProposal", req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to pack input data for WithdrawProposal(),proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
+		log.WithError(err).Errorf("WithdrawProposal: failed to pack input data,proposalId:%d", req.ProposalId)
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -305,25 +306,27 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed toto estimate gas for WithdrawProposal(),proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Errorf("WithdrawProposal: failed to estimate gas,proposalId:%d", req.ProposalId)
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
-
+	if err != nil {
+		log.WithError(err).Error("WithdrawProposal: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 	// call contract WithdrawProposal()
 	tx, err := s.proposalContractInstance.WithdrawProposal(opts, req.ProposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call WithdrawProposal(),proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("WithdrawProposal: failed to call contract,proposalId:%d", req.ProposalId)
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("call WithdrawProposal() proposalId:%d txHash: %s", req.ProposalId, tx.Hash().Hex())
+	log.Debugf("WithdrawProposal: call contract, proposalId:%d txHash: %s", req.ProposalId, tx.Hash().Hex())
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
@@ -335,7 +338,6 @@ func (s *ProposalService) WithdrawProposal(req WithdrawProposalReq) *Response[bo
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 		return response
 	}
@@ -366,7 +368,6 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	input, err := PackAbiInput(s.abi, "effectProposal", req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("EffectProposal: failed to pack input data,proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -379,24 +380,26 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("EffectProposal: failed to estimate gas,proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
-
+	if err != nil {
+		log.WithError(err).Error("EffectProposal: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 	// call contract EffectProposal()
 	tx, err := s.proposalContractInstance.EffectProposal(opts, req.ProposalId)
 	if err != nil {
 		log.WithError(err).Errorf("EffectProposal: failed to call contract, proposalId:%d", req.ProposalId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("CreateEvidence: call contract txHash: %s", tx.Hash().Hex())
+	log.Debugf("EffectProposal: call contract txHash: %s", tx.Hash().Hex())
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
@@ -408,7 +411,6 @@ func (s *ProposalService) EffectProposal(req EffectProposalReq) *Response[bool] 
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 		return response
 	}
@@ -428,8 +430,8 @@ func (s *ProposalService) GetAllProposalId() *Response[[]*big.Int] {
 	// call contract getAllProposalId()
 	pIdList, err := s.proposalContractInstance.GetAllProposalId(nil)
 	if err != nil {
-		log.WithError(err).Error("failed to call getAllProposalId()")
-		response.Msg = "failed to call contract"
+		log.WithError(err).Error("GetAllProposalId: failed to call contract")
+		response.Msg = err.Error()
 		return response
 	}
 	response.Status = Response_SUCCESS
@@ -446,8 +448,8 @@ func (s *ProposalService) GetProposalId(blockNo uint64) *Response[[]*big.Int] {
 	// call contract getProposalId()
 	pIdList, err := s.proposalContractInstance.GetProposalId(nil, new(big.Int).SetUint64(blockNo))
 	if err != nil {
-		log.WithError(err).Error("failed to call getProposalId()")
-		response.Msg = "failed to call contract"
+		log.WithError(err).Error("GetProposalId: failed to call contract")
+		response.Msg = err.Error()
 		return response
 	}
 	response.Status = Response_SUCCESS
@@ -464,8 +466,8 @@ func (s *ProposalService) GetProposal(proposalId *big.Int) *Response[*types.Prop
 	// call contract getProposalId()
 	pType, pUrl, candidate, candidateServiceUrl, submitter, submitBlockNo, _, err := s.proposalContractInstance.GetProposal(nil, proposalId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call GetProposal(),proposalId:%d", proposalId)
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("GetProposal: failed to call contract,proposalId:%d", proposalId)
+		response.Msg = err.Error()
 		return response
 	}
 
@@ -503,7 +505,6 @@ func (s *ProposalService) ResetInterval(req ResetIntervalReq) *Response[bool] {
 	input, err := PackAbiInput(s.abi, "setInterval", uint8(req.IntervalType), req.Blocks)
 	if err != nil {
 		log.WithError(err).Errorf("ResetInterval: failed to pack input data,IntervalType:%d", req.IntervalType)
-		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -516,21 +517,23 @@ func (s *ProposalService) ResetInterval(req ResetIntervalReq) *Response[bool] {
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.proposalContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("ResetInterval: failed to estimate gas,IntervalType:%d", req.IntervalType)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
-
+	if err != nil {
+		log.WithError(err).Error("ResetInterval: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 	// call contract EffectProposal()
 	tx, err := s.proposalContractInstance.SetInterval(opts, uint8(req.IntervalType), req.Blocks)
 	if err != nil {
 		log.WithError(err).Errorf("ResetInterval: failed to call contract,IntervalType:%d", req.IntervalType)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		response.Msg = err.Error()
 		return response
 	}
 	log.Debugf("ResetInterval: call contract txHash: %s", tx.Hash().Hex())
@@ -545,7 +548,6 @@ func (s *ProposalService) ResetInterval(req ResetIntervalReq) *Response[bool] {
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 		return response
 	}

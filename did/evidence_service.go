@@ -74,7 +74,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.credentialContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to estimate gas, credential ID:%s", req.Credential.Id)
-		response.Msg = "failed to estimate gas"
+		response.Msg = err.Error()
 		return response
 	}
 
@@ -82,8 +82,8 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 	if err != nil {
-		log.WithError(err).Errorf("CreateEvidence: failed to build tx options, credential ID:%s", req.Credential.Id)
-		response.Msg = "failed to build tx options"
+		log.WithError(err).Errorf("CreateEvidence: failed to build TxOps, credential ID:%s", req.Credential.Id)
+		response.Msg = "failed to build TxOpts"
 		return response
 	}
 
@@ -91,7 +91,7 @@ func (s *CredentialService) CreateEvidence(req CreateEvidenceReq) *Response[stri
 	tx, err := s.credentialContractInstance.CreateCredential(opts, credentialHash, pubkeyHex, req.Credential.Proof[proofkeys.JWS].(string), updateTime)
 	if err != nil {
 		log.WithError(err).Errorf("CreateEvidence: failed to call contract, credential ID:%s", req.Credential.Id)
-		response.Msg = "failed to call contract"
+		response.Msg = err.Error()
 		return response
 	}
 	log.Debugf("CreateEvidence: call contract txHash: %s", tx.Hash().Hex())
@@ -203,6 +203,8 @@ type RevokeEvidenceReq struct {
 }
 
 func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool] {
+	log.Debugf("RevokeEvidence: req.EvidenceId:%s", req.EvidenceId)
+
 	// init the result
 	response := new(Response[bool])
 	response.CallMode = true
@@ -212,7 +214,7 @@ func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool
 
 	status, err := s.credentialContractInstance.GetStatus(nil, credentialHash)
 	if err != nil {
-		log.WithError(err).Errorf("RevokeEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
+		log.WithError(err).Errorf("RevokeEvidence: failed to get latest block, evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
 		return response
 	}
@@ -229,7 +231,6 @@ func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool
 	input, err := PackAbiInput(s.abi, "changeStatus", credentialHash, int8(types.Credential_INVALID))
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to pack input, evidenceId:%s", req.EvidenceId)
-		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -242,21 +243,23 @@ func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.credentialContractProxy, input)
 	if err != nil {
 		log.WithError(err).Errorf("RevokeEvidence: failed to estimate gas, evidenceId:%s", req.EvidenceId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
-
+	if err != nil {
+		log.WithError(err).Error("RevokeEvidence: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 	// call contract ChangeStatus()
 	tx, err := s.credentialContractInstance.ChangeStatus(opts, credentialHash, int8(types.Credential_INVALID))
 	if err != nil {
-		log.WithError(err).Errorf("RevokeEvidence:  failed to call contract, evidenceId:%s", req.EvidenceId)
-		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("RevokeEvidence: failed to call contract, evidenceId:%s", req.EvidenceId)
+		response.Msg = err.Error()
 		return response
 	}
 	log.Debugf("CreateEvidence: call contract txHash: %s", tx.Hash().Hex())
@@ -271,7 +274,6 @@ func (s *CredentialService) RevokeEvidence(req RevokeEvidenceReq) *Response[bool
 
 	// contract tx execute failed.
 	if receipt.Status == 0 {
-		response.Status = Response_FAILURE
 		response.Msg = "failed to process tx"
 		return response
 	}

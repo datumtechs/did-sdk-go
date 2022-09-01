@@ -57,6 +57,8 @@ type CreateDidReq struct {
 }
 
 func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
+	log.Debugf("CreateDID: req.PublicKey:%s", req.PublicKey)
+
 	// init the result
 	response := new(Response[string])
 	response.CallMode = false
@@ -93,7 +95,7 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 
 	input, err := PackAbiInput(s.abi, "createDid", createTime, publicKeyAsInput, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed topack input data for CreateDid(),PublicKey:%s", req.PublicKey)
+		log.WithError(err).Errorf("CreateDID: failed topack input data,PublicKey:%s", req.PublicKey)
 		response.Msg = "failed to pack input data"
 		return response
 	}
@@ -105,8 +107,8 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.documentContractProxy, input)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for CreateDid(),PublicKey:%s", req.PublicKey)
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Error("CreateDID: failed to estimate gas")
+		response.Msg = err.Error()
 		return response
 	}
 
@@ -114,19 +116,19 @@ func (s *DocumentService) CreateDID(req CreateDidReq) *Response[string] {
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
 	if err != nil {
-		log.WithError(err).Errorf("failed to estimate gas for CreateDid(), PublicKey: %s", req.PublicKey)
-		response.Msg = "failed to estimate gas"
+		log.WithError(err).Error("CreateDID: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
 		return response
 	}
 
 	// call contract CreateDid()
 	tx, err := s.documentContractInstance.CreateDid(opts, createTime, publicKeyAsInput, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call CreateDid(), PublicKey: %s", publicKeyAsInput)
-		response.Msg = "failed to call contract"
+		log.WithError(err).Errorf("CreateDID: failed to call contrat, PublicKey: %s", publicKeyAsInput)
+		response.Msg = err.Error()
 		return response
 	}
-	log.Debugf("call CreateDid() txHash:%s, PublicKey:%s", tx.Hash().Hex(), publicKeyAsInput)
+	log.Debugf("CreateDID: call contract, txHash:%s, PublicKey:%s", tx.Hash().Hex(), publicKeyAsInput)
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
@@ -257,6 +259,7 @@ type AddPublicKeyReq struct {
 
 // 这是对合约setAttribute()方法的一个包装
 func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
+	log.Debugf("AddPublicKey: req.PublicKey:%s", req.PublicKey)
 	response := new(Response[bool])
 	response.CallMode = false
 
@@ -290,7 +293,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	newPublicKeyId := types.BuildPublicKeyId(did, strconv.Itoa(req.Index))
 	//to check if DID document has ths public key id already?
 	if exist := didDoc.IsPublicKeyIdOrPublicKeyExist(newPublicKeyId, req.PublicKey); exist {
-		log.Warningf("Public key or index exist: req:%+v", req)
+		log.Warningf("AddPublicKey: Public key or index exist: req:%+v", req)
 		response.Status = Response_EXIST
 		response.Msg = "Public key or index exist"
 		return response
@@ -303,7 +306,7 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	input, err := PackAbiInput(s.abi, "setAttribute", types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 
 	if err != nil {
-		log.Errorf("failed to pack input data for SetAttribute(): %+v", err)
+		log.WithError(err).Error("AddPublicKey: failed to pack input data")
 		response.Status = Response_FAILURE
 		response.Msg = "failed to pack input data"
 		return response
@@ -316,26 +319,31 @@ func (s *DocumentService) AddPublicKey(req AddPublicKeyReq) *Response[bool] {
 	// 估算gas
 	gasEstimated, err := s.ctx.EstimateGas(timeoutCtx, s.documentContractProxy, input)
 	if err != nil {
-		log.Errorf("failed to estimate gas for SetAttribute(): %s, bech32Addr: %v", address, err)
+		log.WithError(err).Error("AddPublicKey: failed to estimate gas")
 		response.Status = Response_FAILURE
-		response.Msg = "failed to estimate gas"
+		response.Msg = err.Error()
 		return response
 	}
 
 	// 交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
 	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := s.ctx.BuildTxOpts(0, gasEstimated)
+	if err != nil {
+		log.WithError(err).Error("AddPublicKey: failed to build TxOpts")
+		response.Msg = "failed to build TxOpts"
+		return response
+	}
 
 	// call contract SetAttribute()
 	tx, err := s.documentContractInstance.SetAttribute(opts, types.DOC_EVEN_PUBLICKEY, fieldValue, updateTime)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call SetAttribute(), bech32Addr: %s", address)
+		log.WithError(err).Errorf("AddPublicKey: failed to call contract, address: %s", address)
 		response.Status = Response_FAILURE
-		response.Msg = "failed to call contract"
+		response.Msg = err.Error()
 		return response
 	}
 
-	log.Debugf("call SetAttribute() txHash:%s, addresss:%s", tx.Hash().Hex(), address)
+	log.Debugf("AddPublicKey: call contract, txHash:%s, address:%s", tx.Hash().Hex(), address)
 
 	// to get receipt and assemble result
 	receipt := s.ctx.WaitReceipt(timeoutCtx, tx.Hash(), time.Duration(500)*time.Millisecond) // period 500 ms
@@ -382,7 +390,7 @@ func (s *DocumentService) GetDidDocumentStatus(address ethcommon.Address) *Respo
 
 	status, err := s.documentContractInstance.GetStatus(nil, address)
 	if err != nil {
-		log.WithError(err).Errorf("failed to find did document status,bech32Addr:%s", address)
+		log.WithError(err).Errorf("failed to find did document status, address:%s", address.Hex())
 		response.Msg = "failed to find did document status"
 		return response
 	}
