@@ -122,7 +122,7 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 	// init the result
 	response := new(Response[*types.EvidenceSignInfo])
 	response.CallMode = true
-	response.Status = Response_FAILURE
+	response.Status = Response_SUCCESS
 
 	credentialHash := ethcommon.BytesToHash(ethhexuti.MustDecode(req.EvidenceId))
 
@@ -130,6 +130,7 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 	if err != nil {
 		log.WithError(err).Errorf("QueryEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
+		response.Status = Response_FAILURE
 		return response
 	}
 	// init return struct
@@ -142,11 +143,13 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 	if err != nil {
 		log.WithError(err).Errorf("QueryEvidence: failed to get latest block), evidenceId: %s", req.EvidenceId)
 		response.Msg = "failed to get latest block"
+		response.Status = Response_FAILURE
 		return response
 	}
 	if blockNo == nil || blockNo.Uint64() == 0 {
 		log.WithError(err).Errorf("QueryEvidence: evidence not found, evidenceId:%s", req.EvidenceId)
 		response.Msg = "evidence not found"
+		response.Status = Response_FAILURE
 		return response
 	}
 
@@ -155,27 +158,41 @@ func (s *CredentialService) QueryEvidence(req QueryEvidenceReq) *Response[*types
 	defer cancelFn()
 
 	prevBlock := blockNo
-	for prevBlock.Uint64() > 0 {
-		logs := s.ctx.GetLog(timeoutCtx, s.credentialContractProxy, prevBlock)
-		for _, eachLog := range logs {
-			event, err := s.credentialContractInstance.ParseCredentialAttributeChange(eachLog)
+	breakFor := false
+	go func() {
+	main_loop:
+		for !breakFor && prevBlock.Uint64() > 0 {
+			logs, err := s.ctx.GetLog(timeoutCtx, s.credentialContractProxy, prevBlock)
 			if err != nil {
-				response.Msg = "failed to parse CredentialAttributeChange event"
-				return response
+				log.WithError(err).Errorf("failed to get block logs, blockNumber:%d", prevBlock.Uint64())
+				response.Msg = "failed to get block logs"
+				response.Status = Response_FAILURE
+				break main_loop
 			}
-			switch event.FieldKey {
-			case types.VC_EVENT_SIGNATURE:
-				evidence.SupplementSignature(event.FieldValue)
-				evidence.Timestamp = event.UpdateTime
-			case types.VC_EVENT_SIGNERPUBKEY:
-				evidence.SupplementSignerPubKey(event.FieldValue)
-				evidence.Timestamp = event.UpdateTime
+			for _, eachLog := range logs {
+				event, err := s.credentialContractInstance.ParseCredentialAttributeChange(eachLog)
+				if err != nil {
+					response.Msg = "failed to parse CredentialAttributeChange event"
+					response.Status = Response_FAILURE
+					break main_loop
+				}
+				switch event.FieldKey {
+				case types.VC_EVENT_SIGNATURE:
+					evidence.SupplementSignature(event.FieldValue)
+					evidence.Timestamp = event.UpdateTime
+				case types.VC_EVENT_SIGNERPUBKEY:
+					evidence.SupplementSignerPubKey(event.FieldValue)
+					evidence.Timestamp = event.UpdateTime
+				}
+				prevBlock = event.BlockNumber
 			}
-			prevBlock = event.BlockNumber
 		}
-	}
+		cancelFn()
+	}()
 
-	response.Status = Response_SUCCESS
+	<-timeoutCtx.Done()
+	breakFor = true
+
 	response.Data = evidence
 	return response
 }

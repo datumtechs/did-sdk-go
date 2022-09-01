@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
 	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/did-sdk-go/common"
 	"github.com/datumtechs/did-sdk-go/contracts"
@@ -167,16 +168,17 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 	// init the result
 	response := new(Response[*types.DidDocument])
 	response.CallMode = true
-	response.Status = Response_FAILURE
+	response.Status = Response_SUCCESS
 
 	blockNo, err := s.documentContractInstance.GetLatestBlock(nil, address)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call GetLatestBlock(), bech32Addr: %s", address)
+		log.WithError(err).Errorf("failed to call GetLatestBlock(), bech32Addr: %s", platoncommon.Address(address).Bech32())
 		response.Msg = "failed to get latest block of DID"
+		response.Status = Response_FAILURE
 		return response
 	}
 	if blockNo == nil || blockNo.Uint64() == 0 {
-		log.WithError(err).Errorf("DID not found, bech32Addr: %s", address)
+		log.WithError(err).Errorf("DID not found, bech32Addr: %s", platoncommon.Address(address).Bech32())
 		response.Msg = "DID not found"
 		response.Status = Response_NOT_FOUND
 		return response
@@ -200,30 +202,44 @@ func (s *DocumentService) QueryDidDocumentByAddress(address ethcommon.Address) *
 
 	prevBlock := blockNo
 	log.Debugf("blockNumber:%d", prevBlock.Uint64())
-	for prevBlock.Uint64() > 0 {
-		logs := s.ctx.GetLog(timeoutCtx, s.documentContractProxy, prevBlock)
-		for _, eachLog := range logs {
-			event, err := s.documentContractInstance.ParseDIDAttributeChange(eachLog)
+	breakFor := false
+	go func() {
+	main_loop:
+		for !breakFor && prevBlock.Uint64() > 0 {
+			logs, err := s.ctx.GetLog(timeoutCtx, s.documentContractProxy, prevBlock)
 			if err != nil {
-				response.Msg = "failed to parse contract event"
-				return response
+				log.WithError(err).Errorf("failed to get block logs, blockNumber:%d", prevBlock.Uint64())
+				response.Msg = "failed to get block logs"
+				response.Status = Response_FAILURE
+				break main_loop
 			}
-			switch event.FieldKey {
-			case types.DOC_EVENT_CREATE:
-				document.Created = event.FieldValue
-				document.Updated = event.UpdateTime
-				prevBlock = event.BlockNumber
-			case types.DOC_EVEN_PUBLICKEY:
-				didPublicKey := types.EventToDidPublicKey(document.Id, event.FieldValue)
-				document.Updated = event.UpdateTime
-				document.SupplementDidPublicKey(didPublicKey)
-				prevBlock = event.BlockNumber
+			for _, eachLog := range logs {
+				event, err := s.documentContractInstance.ParseDIDAttributeChange(eachLog)
+				if err != nil {
+					response.Msg = "failed to parse contract event"
+					response.Status = Response_FAILURE
+					break main_loop
+				}
+				switch event.FieldKey {
+				case types.DOC_EVENT_CREATE:
+					document.Created = event.FieldValue
+					document.Updated = event.UpdateTime
+					prevBlock = event.BlockNumber
+				case types.DOC_EVEN_PUBLICKEY:
+					didPublicKey := types.EventToDidPublicKey(document.Id, event.FieldValue)
+					document.Updated = event.UpdateTime
+					document.SupplementDidPublicKey(didPublicKey)
+					prevBlock = event.BlockNumber
+				}
 			}
 		}
-	}
+		cancelFn()
+	}()
+
+	<-timeoutCtx.Done()
+	breakFor = true
 
 	response.Data = document
-	response.Status = Response_SUCCESS
 	return response
 
 }

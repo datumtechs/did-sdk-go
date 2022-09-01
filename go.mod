@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/PlatONnetwork/PlatON-Go v1.2.2
-	github.com/bglmmz/chainclient v0.0.1
+	github.com/bglmmz/chainclient v0.0.4
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/google/uuid v1.2.0
 	github.com/json-schema-spec/json-schema-go v0.2.6

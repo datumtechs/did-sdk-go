@@ -41,17 +41,17 @@ var vc = "{\"context\":\"http://datumtech.com/did/v1\",\"version\":\"1.0.0\",\"i
 var credentialHash ethcommon.Hash
 
 var config = &Config{
-	DocumentContractProxy:   ethcommon.HexToAddress("0x279167d9767b10CEF88b9a81D9C912e475c0B75b"),
-	PctContractProxy:        ethcommon.HexToAddress("0xFa2A71584740c749F1EF055741140833534504CD"),
-	ProposalContractProxy:   ethcommon.HexToAddress("0x857027b23F73F5823984d90550A39cAA6FA43A11"),
-	CredentialContractProxy: ethcommon.HexToAddress("0x6Afe474d2201525558b50D5D5a8544e88d222E05"),
+	DocumentContractProxy:   ethcommon.HexToAddress("0x207c35F61E70A6Cb5DD8Ad3Eb17c89fB061b6988"),
+	PctContractProxy:        ethcommon.HexToAddress("0x4fD33BbF1cFd29e35739E0C434FC0a95e25B79A8"),
+	ProposalContractProxy:   ethcommon.HexToAddress("0x5858781B484B7cdB0d76f34B8bC3bEa2C75561E9"),
+	CredentialContractProxy: ethcommon.HexToAddress("0x164388ac354CFb804017E070a61e90809E9369Fd"),
 }
 
 func setup() {
 	fmt.Println("initing........")
 	InitMockWallet()
 	MockWalletInstance().SetPrivateKey(privateKey)
-	ethcontext := chainclient.NewEthClientContext("ws://8.219.126.197:6790", "lat", MockWalletInstance())
+	ethcontext := chainclient.NewEthClientContext("http://8.219.126.197:6789", "lat", MockWalletInstance())
 	didService = NewDIDService(ethcontext, config)
 	fmt.Println("publicKey:" + publicKey)
 	fmt.Println("bech32Addr:" + bech32Addr.String())

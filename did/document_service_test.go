@@ -38,17 +38,29 @@ func Test_createApplicantDid(t *testing.T) {
 	t.Logf("response.data:%+v", response.Data)
 
 	a := assert.New(t)
-	if a.Contains(response.Msg, "Did exists") || a.Equal(Response_SUCCESS, response.Status) {
+	if a.Equal(Response_SUCCESS, response.Status) {
 		docResponse := didService.DocumentService.QueryDidDocument(response.Data)
 		t.Logf("response.Data:%+v", *docResponse.Data)
 		t.Logf("pubkey:%+v", *docResponse.Data.PublicKey[0])
+	} else {
+		if a.Contains(response.Msg, "Did exists") {
+			docResponse := didService.DocumentService.QueryDidDocument(response.Data)
+			t.Logf("response.Data:%+v", *docResponse.Data)
+			t.Logf("pubkey:%+v", *docResponse.Data.PublicKey[0])
+		}
 	}
 }
 
 func Test_QueryDidDocument(t *testing.T) {
 	setup()
-	response := didService.DocumentService.QueryDidDocument("did:pid:lat1g83xnwcqc4uufpx9588muq0e98g93rlmpgx563")
-	t.Logf("response:%+v", *response.Data.PublicKey[0])
+	response := didService.DocumentService.QueryDidDocument("did:pid:lat1cq9svdd8vc83u74relncn6cyxywr5mjqccqlea")
+	a := assert.New(t)
+	if a.Equal(Response_SUCCESS, response.Status) {
+		t.Logf("response:%+v", *response.Data.PublicKey[0])
+	} else {
+		t.Fatal(response.Msg)
+	}
+
 }
 
 func Test_HexToPublicKey(t *testing.T) {
@@ -60,5 +72,9 @@ func Test_HexToPublicKey(t *testing.T) {
 	bech32Addr := platoncommon.Address(ethcrypto.PubkeyToAddress(*pubKey))
 
 	t.Logf("bech32Addr:%+v", bech32Addr.Bech32())
+
+}
+
+func Test_timeout(t *testing.T) {
 
 }

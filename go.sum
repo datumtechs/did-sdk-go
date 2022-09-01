@@ -21,6 +21,12 @@ github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a h1:9qxK/Spnv+co
 github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a/go.mod h1:c0Cch443MrvXSZxtbnXu3DiSO4sIjY11nSjCogWjj94=
 github.com/bglmmz/chainclient v0.0.1 h1:p37zm39Ef/iTxpF3BvDntLCBaisKwVYGolwZ7vP2k6U=
 github.com/bglmmz/chainclient v0.0.1/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
+github.com/bglmmz/chainclient v0.0.2 h1:FzpFD8G6R2DLM1ZDyt73UAiOZBHANYjCgaP1IXbjml4=
+github.com/bglmmz/chainclient v0.0.2/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
+github.com/bglmmz/chainclient v0.0.3 h1:cIcouSvB410+dPDPpB24Rc27WASND1MxMfKjLrfb5Ts=
+github.com/bglmmz/chainclient v0.0.3/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
+github.com/bglmmz/chainclient v0.0.4 h1:5FUDKM/kcGTfWb/FXwIs7t3JI774lyGtqH4QfHBUmEc=
+github.com/bglmmz/chainclient v0.0.4/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
 github.com/btcsuite/btcd v0.20.1-beta h1:Ik4hyJqN8Jfyv3S4AGBOmyouMsYE3EdYODkMbQjwPGw=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btcd/btcec/v2 v2.2.0 h1:fzn1qaOt32TuLjFlkzYSsBC35Q3KUjT1SwPxiMSCF5k=
