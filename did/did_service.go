@@ -1,7 +1,7 @@
 package did
 
 import (
-	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/chainclient"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"

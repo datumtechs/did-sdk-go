@@ -3,7 +3,7 @@ package did
 import (
 	"context"
 	"crypto/ecdsa"
-	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/chainclient"
 	"github.com/datumtechs/did-sdk-go/contracts"
 	"github.com/datumtechs/did-sdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	platoncommon "github.com/PlatONnetwork/PlatON-Go/common"
-	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/chainclient"
 	"github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
